@@ -46,11 +46,18 @@ export function UserProvider({ children }) {
         return user.profil === requiredRole || user.profil.includes(requiredRole);
     };
 
+    // Clear user on logout
+    const clearUser = () => {
+        setUser(null);
+        setLoading(false);
+    };
+
     const value = {
         user,
         loading,
         fetchUser,
-        hasPermission
+        hasPermission,
+        clearUser
     };
 
     return (
