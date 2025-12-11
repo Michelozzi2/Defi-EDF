@@ -14,7 +14,7 @@ export default function Layout({ children }) {
     const location = useLocation();
     const navigate = useNavigate();
     const { theme, toggleTheme } = useTheme();
-    const { user } = useUser();
+    const { user, clearUser } = useUser();
     const [dockExpanded, setDockExpanded] = useState(false);
 
     // Define all nav items with permission check (same logic as WorkspaceSelector)
@@ -38,14 +38,14 @@ export default function Layout({ children }) {
             path: '/commande',
             icon: ShoppingCart,
             color: 'bg-[#223555]',
-            allowed: user?.profil === 'admin' || user?.profil?.includes('bo')
+            allowed: user?.profil === 'admin' || user?.profil?.includes('commande')
         },
         {
             name: 'Opérations',
             path: '/operations',
             icon: Wrench,
             color: 'bg-blue-600',
-            allowed: user?.profil === 'admin' || user?.profil?.includes('bo')
+            allowed: user?.profil === 'admin' || user?.profil?.includes('terrain')
         },
         {
             name: 'Laboratoire',
@@ -61,6 +61,7 @@ export default function Layout({ children }) {
 
     const handleLogout = async () => {
         await api.post('/auth/logout/');
+        clearUser();
         navigate('/login');
     };
 

@@ -1,34 +1,24 @@
-import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { LayoutGrid, FileText, Package, Microscope, Settings, LogOut, ArrowRight, Sun, Moon, ShoppingCart, Wrench } from 'lucide-react';
 import api from '../services/api';
 import { useTheme } from '../context/ThemeContext';
+import { useUser } from '../context/UserContext';
 import clsx from 'clsx';
 
 export default function WorkspaceSelector() {
     const navigate = useNavigate();
     const { theme, toggleTheme } = useTheme();
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        api.get('/auth/me/')
-            .then(res => {
-                setUser(res.data);
-                setLoading(false);
-            })
-            .catch(() => {
-                navigate('/login');
-            });
-    }, [navigate]);
+    const { user, loading, clearUser } = useUser();
 
     const handleLogout = async () => {
         await api.post('/auth/logout/');
+        clearUser();
         navigate('/login');
     };
 
-    if (loading) return <div className="min-h-screen bg-white flex items-center justify-center text-[#001A70]">Chargement...</div>;
+    if (loading || !user) return <div className="min-h-screen bg-white flex items-center justify-center text-[#001A70]">Chargement...</div>;
+
 
     const workspaces = [
         {
@@ -44,20 +34,20 @@ export default function WorkspaceSelector() {
             id: 'commande',
             title: 'Commandes',
             desc: 'Gestion des commandes et stocks',
-            icon: ShoppingCart, // Changed to match Layout
+            icon: ShoppingCart,
             color: 'bg-[#223555]',
             path: '/commande',
-            allowed: user.profil === 'admin' || (user.profil && user.profil.includes('bo')),
+            allowed: user.profil === 'admin' || (user.profil && user.profil.includes('commande')),
             external: false
         },
         {
             id: 'operations',
             title: 'Opérations',
             desc: 'Pose, Dépose et Maintenance',
-            icon: Wrench, // Changed to match Layout
+            icon: Wrench,
             color: 'bg-blue-600',
             path: '/operations',
-            allowed: user.profil === 'admin' || (user.profil && user.profil.includes('bo')),
+            allowed: user.profil === 'admin' || (user.profil && user.profil.includes('terrain')),
             external: false
         },
         {

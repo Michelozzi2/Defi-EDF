@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { User, Lock, ArrowRight, Zap, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import { useUser } from '../context/UserContext';
 import clsx from 'clsx';
 
 export default function Login() {
@@ -13,6 +14,7 @@ export default function Login() {
     const [showPassword, setShowPassword] = useState(false);
 
     const navigate = useNavigate();
+    const { fetchUser } = useUser();
 
     // Helper to check if CSRF cookie exists
     const getCsrfCookie = () => {
@@ -66,6 +68,8 @@ export default function Login() {
 
         try {
             await api.post('/auth/login/', { username, password });
+            // Fetch user to hydrate context before navigating
+            await fetchUser();
             navigate('/workspaces');
         } catch (err) {
             if (err.response?.status === 401 || err.response?.status === 400) {
