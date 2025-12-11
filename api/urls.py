@@ -3,9 +3,8 @@ API URL routing.
 """
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-
 from .views import (
-    CurrentUserView,
+    CurrentUserView, LoginAPIView, LogoutAPIView, CSRFTokenView,
     ConcentrateurViewSet, CartonViewSet, PosteViewSet,
     ReceptionView, CommandeView, PoseView, DeposeView, TestView,
     StockStatsView
@@ -18,6 +17,9 @@ router.register(r'postes', PosteViewSet, basename='poste')
 
 urlpatterns = [
     # Auth
+    path('auth/csrf/', CSRFTokenView.as_view(), name='csrf-token'),
+    path('auth/login/', LoginAPIView.as_view(), name='api-login'),
+    path('auth/logout/', LogoutAPIView.as_view(), name='api-logout'),
     path('auth/me/', CurrentUserView.as_view(), name='current-user'),
     
     # Model endpoints (via router)

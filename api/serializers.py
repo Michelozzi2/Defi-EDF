@@ -40,14 +40,14 @@ class CartonSerializer(serializers.ModelSerializer):
 class ConcentrateurListSerializer(serializers.ModelSerializer):
     """Serializer for Concentrateur list view (minimal fields)."""
     etat_display = serializers.CharField(source='get_etat_display', read_only=True)
-    carton_num = serializers.CharField(source='carton.num_carton', read_only=True, allow_null=True)
+    carton = serializers.CharField(source='carton.num_carton', read_only=True, allow_null=True)
     poste_code = serializers.CharField(source='poste_pose.code', read_only=True, allow_null=True)
     
     class Meta:
         model = Concentrateur
         fields = [
             'id', 'n_serie', 'operateur', 'etat', 'etat_display',
-            'affectation', 'carton_num', 'poste_code', 'date_dernier_etat'
+            'affectation', 'carton', 'poste_code', 'date_dernier_etat'
         ]
 
 
