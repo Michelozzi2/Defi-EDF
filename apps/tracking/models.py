@@ -13,6 +13,7 @@ class ActionType(models.TextChoices):
     DEPOSE = 'depose', 'Dépose du poste'
     TEST_OK = 'test_ok', 'Test OK'
     TEST_HS = 'test_hs', 'Test HS'
+    RECONDITIONNEMENT = 'reconditionnement', 'Reconditionnement'
     MODIFICATION = 'modification', 'Modification manuelle'
 
 

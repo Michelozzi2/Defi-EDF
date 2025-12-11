@@ -87,6 +87,10 @@ class Carton(models.Model):
         auto_now_add=True,
         verbose_name="Date création"
     )
+    is_reconditionne = models.BooleanField(
+        default=False,
+        verbose_name="Reconditionné"
+    )
     
     class Meta:
         verbose_name = "Carton"
