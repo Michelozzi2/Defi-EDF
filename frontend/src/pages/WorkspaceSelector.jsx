@@ -99,21 +99,26 @@ export default function WorkspaceSelector() {
         )}>
             {/* Background Accent */}
             <div className={clsx(
-                "absolute top-0 right-0 w-full h-64 -z-10 skew-y-2 origin-top-left transform scale-x-110 transition-colors duration-300",
+                "absolute top-0 right-0 w-full h-64 -z-10 skew-y-2 origin-top-left transition-colors duration-300",
                 theme === 'dark' ? "bg-[#001A70]/50" : "bg-[#001A70]"
             )}></div>
 
             <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-16 pt-8 max-w-6xl mx-auto">
                 <div>
-                    <h1 className="text-3xl font-bold mb-1 transition-colors text-white">Espaces de Travail</h1>
-                    <p className="text-lg text-blue-100">
-                        Connecté en tant que <span className="font-semibold text-white">{user.username}</span>
+                    <h1 className={clsx("text-3xl font-bold mb-1 transition-colors", theme === 'dark' ? "text-white" : "text-[#001A70]")}>Espaces de Travail</h1>
+                    <p className={clsx("text-lg", theme === 'dark' ? "text-gray-300" : "text-gray-600")}>
+                        Connecté en tant que <span className="font-semibold text-[#FE5815]">{user.username}</span>
                     </p>
                 </div>
                 <div className="flex items-center gap-4 mt-4 md:mt-0">
                     <button
                         onClick={toggleTheme}
-                        className="p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors backdrop-blur-sm border border-white/10"
+                        className={clsx(
+                            "p-3 rounded-full transition-colors border",
+                            theme === 'dark'
+                                ? "bg-white/10 hover:bg-white/20 text-white border-white/10"
+                                : "bg-gray-100 hover:bg-gray-200 text-[#001A70] border-gray-300"
+                        )}
                     >
                         {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
                     </button>

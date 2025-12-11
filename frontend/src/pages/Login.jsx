@@ -50,23 +50,31 @@ export default function Login() {
         setLoading(true);
         setError('');
 
-        await ensureCsrf();
+        // Ensure CSRF token is set and update axios header directly
+        const hasCsrf = await ensureCsrf();
+        if (!hasCsrf) {
+            setError("Erreur de sécurité. Veuillez rafraîchir la page.");
+            setLoading(false);
+            return;
+        }
+
+        // Manually update axios default header with current CSRF token
+        const csrfToken = getCsrfCookie();
+        if (csrfToken) {
+            api.defaults.headers.common['X-CSRFToken'] = csrfToken;
+        }
 
         try {
             await api.post('/auth/login/', { username, password });
             navigate('/workspaces');
         } catch (err) {
-            if (err.response && err.response.status === 403) {
-                await ensureCsrf();
-                try {
-                    await api.post('/auth/login/', { username, password });
-                    navigate('/workspaces');
-                    return;
-                } catch (retryErr) {
-                    console.error("Retry failed", retryErr);
-                }
+            if (err.response?.status === 401 || err.response?.status === 400) {
+                setError("Identifiants incorrects. Veuillez réessayer.");
+            } else if (err.response?.status === 403) {
+                setError("Session expirée. Veuillez rafraîchir la page.");
+            } else {
+                setError("Erreur de connexion. Veuillez réessayer.");
             }
-            setError("Identifiants incorrects. Veuillez réessayer.");
             setLoading(false);
         }
     };
