@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { LayoutGrid, FileText, Package, Microscope, Settings, LogOut, ArrowRight, Sun, Moon } from 'lucide-react';
+import { LayoutGrid, FileText, Package, Microscope, Settings, LogOut, ArrowRight, Sun, Moon, ShoppingCart, Wrench } from 'lucide-react';
 import api from '../services/api';
 import { useTheme } from '../context/ThemeContext';
 import clsx from 'clsx';
@@ -41,13 +41,23 @@ export default function WorkspaceSelector() {
             allowed: true
         },
         {
-            id: 'bo',
-            title: 'Back Office',
-            desc: 'Commandes, Poses et Déposes',
-            icon: FileText,
+            id: 'commande',
+            title: 'Commandes',
+            desc: 'Gestion des commandes et stocks',
+            icon: ShoppingCart, // Changed to match Layout
             color: 'bg-[#223555]',
             path: '/commande',
-            allowed: user.profil === 'admin' || user.profil.includes('bo'),
+            allowed: user.profil === 'admin' || (user.profil && user.profil.includes('bo')),
+            external: false
+        },
+        {
+            id: 'operations',
+            title: 'Opérations',
+            desc: 'Pose, Dépose et Maintenance',
+            icon: Wrench, // Changed to match Layout
+            color: 'bg-blue-600',
+            path: '/operations',
+            allowed: user.profil === 'admin' || (user.profil && user.profil.includes('bo')) || user.profil === 'magasin',
             external: false
         },
         {
@@ -95,20 +105,15 @@ export default function WorkspaceSelector() {
 
             <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-16 pt-8 max-w-6xl mx-auto">
                 <div>
-                    <h1 className={clsx(
-                        "text-3xl font-bold mb-1 transition-colors",
-                        theme === 'dark' ? "text-white" : "text-white md:text-[#001A70]" // On mobile header is on dark bg? Wait, background accent is blue.
-                        // Actually header title "Espaces de Travail" is on the dark blue accent?
-                        // In the original it was "text-white".
-                    )}>Espaces de Travail</h1>
-                    <p className={clsx("text-lg", theme === 'dark' ? "text-blue-300" : "text-blue-200")}>
+                    <h1 className="text-3xl font-bold mb-1 transition-colors text-white">Espaces de Travail</h1>
+                    <p className="text-lg text-blue-100">
                         Connecté en tant que <span className="font-semibold text-white">{user.username}</span>
                     </p>
                 </div>
                 <div className="flex items-center gap-4 mt-4 md:mt-0">
                     <button
                         onClick={toggleTheme}
-                        className="p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors backdrop-blur-sm"
+                        className="p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors backdrop-blur-sm border border-white/10"
                     >
                         {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
                     </button>
@@ -135,7 +140,7 @@ export default function WorkspaceSelector() {
                             else navigate(ws.path);
                         }}
                         className={clsx(
-                            "group p-8 rounded-3xl text-left transition-all relative overflow-hidden shadow-sm bg-white border border-transparent hover:border-gray-100",
+                            "group p-8 rounded-3xl text-left transition-all relative overflow-hidden shadow-sm bg-white dark:bg-[#16202A] border border-transparent dark:border-gray-800 hover:border-gray-100 dark:hover:border-gray-700",
                             ws.id === 'dashboard' ? "lg:col-span-2 bg-gradient-to-br from-[#001A70] to-blue-900 text-white" : ""
                         )}
                     >
@@ -152,8 +157,8 @@ export default function WorkspaceSelector() {
                             <ws.icon size={28} />
                         </div>
 
-                        <h3 className={clsx("text-xl font-bold mb-2", ws.id === 'dashboard' ? "text-white" : "text-[#001A70]")}>{ws.title}</h3>
-                        <p className={clsx("text-sm", ws.id === 'dashboard' ? "text-blue-200" : "text-gray-500")}>{ws.desc}</p>
+                        <h3 className={clsx("text-xl font-bold mb-2 transition-colors", ws.id === 'dashboard' ? "text-white" : "text-[#001A70] dark:text-white")}>{ws.title}</h3>
+                        <p className={clsx("text-sm transition-colors", ws.id === 'dashboard' ? "text-blue-200" : "text-gray-500 dark:text-gray-400")}>{ws.desc}</p>
 
                         <div className={clsx(
                             "absolute bottom-8 right-8 transition-all duration-300 opacity-0 transform translate-x-4",
