@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import api from '../services/api';
 import { ShoppingCart, Plus, Minus, Send, AlertCircle, Loader2, Package } from 'lucide-react';
@@ -11,6 +11,31 @@ export default function Commande() {
     const [loading, setLoading] = useState(false);
     const [status, setStatus] = useState(null);
     const [message, setMessage] = useState('');
+    const [stats, setStats] = useState({ stock: 0, impact: 0 });
+
+    useEffect(() => {
+        if (operateur) {
+            const fetchStats = async () => {
+                try {
+                    // Fetch concentrateurs in stock at Magasin for the selected operator
+                    const res = await api.get('/concentrateurs/', {
+                        params: { operateur, etat: 'en_stock', affectation: 'Magasin' }
+                    });
+                    // Use count from paginated response for total, not just page length
+                    const total = res.data.count !== undefined ? res.data.count : (res.data.results || res.data).length;
+                    // 4 concentrateurs per carton
+                    const maxCartons = Math.floor(total / 4);
+                    setStats({ stock: maxCartons, count: total, maxCartons });
+                } catch (e) {
+                    console.error(e);
+                    setStats({ stock: '-', count: '-', maxCartons: 0 });
+                }
+            };
+            fetchStats();
+            // Reset nbCartons when operator changes
+            setNbCartons(1);
+        }
+    }, [operateur]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -28,6 +53,7 @@ export default function Commande() {
             setMessage(`Commande de ${nbCartons} cartons pour ${operateur} effectuée avec succès !`);
             setNbCartons(1);
             setOperateur('');
+            setStats({ stock: 0, impact: 0, maxCartons: 0 });
         } catch (err) {
             console.error(err);
             setStatus('error');
@@ -39,95 +65,147 @@ export default function Commande() {
 
     return (
         <Layout>
-            <div className="max-w-2xl mx-auto">
+            <div className="max-w-2xl mx-auto p-6">
                 <div className="mb-8 text-center">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-orange-100 text-[#FE5815] rounded-2xl mb-4">
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-orange-100 dark:bg-orange-900/30 text-[#FE5815] dark:text-[#FE5815] rounded-2xl mb-4">
                         <ShoppingCart size={32} />
                     </div>
-                    <h1 className="text-3xl font-bold text-[#001A70]">Commande Cartons</h1>
-                    <p className="text-gray-500 mt-2">Commander des nouveaux cartons pour un opérateur.</p>
+                    <h1 className="text-3xl font-bold text-[#001A70] dark:text-white">Commande Cartons</h1>
+                    <p className="text-gray-500 dark:text-gray-400 mt-2">Commander des nouveaux cartons pour un opérateur.</p>
                 </div>
 
-                <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100 relative overflow-hidden">
-                    <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-orange-50 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob"></div>
+                <div className="bg-white dark:bg-[#16202A] rounded-3xl shadow-xl p-8 border border-gray-100 dark:border-gray-800 relative overflow-hidden">
+                    <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-orange-50 dark:bg-orange-900/20 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-70 animate-blob"></div>
 
                     <form onSubmit={handleSubmit} className="relative z-10 space-y-8">
                         {/* Operator Input */}
                         <div className="space-y-2">
-                            <label className="text-sm font-semibold text-gray-700 ml-1">Opérateur Destinataire</label>
-                            <input
-                                type="text"
+                            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Opérateur Destinataire</label>
+                            <select
                                 value={operateur}
                                 onChange={(e) => setOperateur(e.target.value)}
-                                placeholder="Nom de l'opérateur (ex: Eiffage)"
-                                className="w-full bg-gray-50 border border-gray-200 rounded-xl py-4 px-4 text-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#FE5815] transition-all"
-                            />
-                        </div>
-
-                        {/* Quantity Selector */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold text-gray-700 ml-1">Nombre de Cartons</label>
-                            <div className="flex items-center gap-4">
-                                <button
-                                    type="button"
-                                    onClick={() => setNbCartons(Math.max(1, nbCartons - 1))}
-                                    className="p-4 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
-                                >
-                                    <Minus size={24} />
-                                </button>
-                                <div className="flex-1 bg-gray-50 border border-gray-200 rounded-xl py-4 flex items-center justify-center gap-3">
-                                    <Package className="text-gray-400" />
-                                    <span className="text-2xl font-bold text-[#001A70]">{nbCartons}</span>
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={() => setNbCartons(nbCartons + 1)}
-                                    className="p-4 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
-                                >
-                                    <Plus size={24} />
-                                </button>
-                            </div>
-                        </div>
-
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className={clsx(
-                                "w-full py-5 rounded-xl font-bold text-white shadow-lg transition-all transform active:scale-[0.98] flex items-center justify-center gap-3",
-                                loading ? "bg-gray-400 cursor-not-allowed" : "bg-[#FE5815] hover:bg-[#e04505] shadow-orange-900/20"
-                            )}
-                        >
-                            {loading ? (
-                                <>
-                                    <Loader2 className="animate-spin" /> Envoi...
-                                </>
-                            ) : (
-                                <>
-                                    <Send size={20} /> Valider la Commande
-                                </>
-                            )}
-                        </button>
-                    </form>
-
-                    <AnimatePresence>
-                        {status && (
-                            <motion.div
-                                initial={{ opacity: 0, y: 10, height: 0 }}
-                                animate={{ opacity: 1, y: 0, height: 'auto' }}
-                                exit={{ opacity: 0, y: 10, height: 0 }}
-                                className={clsx(
-                                    "mt-6 p-4 rounded-xl flex items-start gap-3",
-                                    status === 'success' ? "bg-green-50 text-green-700 border border-green-200" : "bg-red-50 text-red-700 border border-red-200"
-                                )}
+                                className="w-full bg-gray-50 dark:bg-[#0F1720] border border-gray-200 dark:border-gray-700 rounded-xl py-4 px-4 text-lg text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#FE5815] transition-all appearance-none cursor-pointer"
                             >
-                                {status === 'success' ? <Package className="shrink-0" /> : <AlertCircle className="shrink-0" />}
-                                <div>
-                                    <h4 className="font-bold">{status === 'success' ? "Succès" : "Erreur"}</h4>
-                                    <p className="text-sm opacity-90">{message}</p>
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
+                                <option value="">Sélectionner un opérateur...</option>
+                                <option value="Bouygues">Bouygues</option>
+                                <option value="SFR">SFR</option>
+                                <option value="Orange">Orange</option>
+                            </select>
+                        </div>
+
+                        {/* Stats & Form (Only if operator selected) */}
+                        <AnimatePresence>
+                            {operateur && (
+                                <motion.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    className="space-y-8"
+                                >
+                                    {/* Stats Panel */}
+                                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl p-4 grid grid-cols-2 gap-4">
+                                        <div>
+                                            <span className="text-xs text-blue-600 dark:text-blue-400 uppercase font-bold tracking-wider">En Stock (Magasin)</span>
+                                            <p className="text-2xl font-bold text-[#001A70] dark:text-white">
+                                                {stats.stock !== '-' ? `${stats.stock} cartons` : '--'}
+                                                {stats.count !== '-' && <span className="text-sm font-normal text-gray-500 dark:text-gray-400 block">({stats.count} unités)</span>}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <span className="text-xs text-blue-600 dark:text-blue-400 uppercase font-bold tracking-wider">Impact Commande</span>
+                                            <p className="text-2xl font-bold text-[#FE5815]">
+                                                {nbCartons * 4} <span className="text-sm font-normal text-orange-600 dark:text-orange-400">concentrateurs</span>
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Quantity Selector */}
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
+                                            Nombre de Cartons à Commander
+                                            <span className="text-gray-400 font-normal ml-2">(max: {stats.maxCartons || 0})</span>
+                                        </label>
+                                        <div className="flex items-center gap-4">
+                                            <button
+                                                type="button"
+                                                onClick={() => setNbCartons(Math.max(1, nbCartons - 1))}
+                                                disabled={nbCartons <= 1}
+                                                className={clsx(
+                                                    "p-4 rounded-xl transition-colors",
+                                                    nbCartons <= 1
+                                                        ? "bg-gray-100 dark:bg-gray-800 text-gray-300 dark:text-gray-600 cursor-not-allowed"
+                                                        : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                                                )}
+                                            >
+                                                <Minus size={24} />
+                                            </button>
+                                            <div className="flex-1 bg-gray-50 dark:bg-[#0F1720] border border-gray-200 dark:border-gray-700 rounded-xl py-2 flex items-center justify-center gap-3">
+                                                <Package className="text-gray-400 dark:text-gray-500" />
+                                                <input
+                                                    type="number"
+                                                    min="1"
+                                                    max={stats.maxCartons || 1}
+                                                    value={nbCartons}
+                                                    onChange={(e) => {
+                                                        const val = parseInt(e.target.value) || 1;
+                                                        setNbCartons(Math.min(Math.max(1, val), stats.maxCartons || 1));
+                                                    }}
+                                                    className="w-20 text-2xl font-bold text-[#001A70] dark:text-white bg-transparent text-center focus:outline-none"
+                                                />
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => setNbCartons(Math.min((stats.maxCartons || 1), nbCartons + 1))}
+                                                disabled={nbCartons >= (stats.maxCartons || 0)}
+                                                className={clsx(
+                                                    "p-4 rounded-xl transition-colors",
+                                                    nbCartons >= (stats.maxCartons || 0)
+                                                        ? "bg-gray-100 dark:bg-gray-800 text-gray-300 dark:text-gray-600 cursor-not-allowed"
+                                                        : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                                                )}
+                                            >
+                                                <Plus size={24} />
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Submit Button */}
+                                    <button
+                                        type="submit"
+                                        disabled={loading}
+                                        className={clsx(
+                                            "w-full py-4 rounded-xl font-bold text-white text-lg shadow-lg active:scale-[0.98] transition-all flex items-center justify-center gap-3",
+                                            loading
+                                                ? "bg-gray-400 cursor-not-allowed"
+                                                : "bg-[#FE5815] hover:bg-[#e04505] shadow-orange-500/20"
+                                        )}
+                                    >
+                                        {loading ? <Loader2 className="animate-spin" /> : <Send size={24} />}
+                                        Valider la commande
+                                    </button>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
+                        {/* Status Message */}
+                        <AnimatePresence>
+                            {status && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0 }}
+                                    className={clsx(
+                                        "mt-6 p-4 rounded-xl flex items-center gap-3",
+                                        status === 'success' ? "bg-green-50 text-green-700 border border-green-200" : "bg-red-50 text-red-700 border border-red-200"
+                                    )}
+                                >
+                                    {status === 'success' ? <Package size={20} /> : <AlertCircle size={20} />}
+                                    <p className="font-medium">{message}</p>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
+                    </form>
                 </div>
             </div>
         </Layout>

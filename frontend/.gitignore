@@ -1,0 +1,19 @@
+# Helper files
+package-lock.json
+yarn.lock
+
+# Dependencies
+node_modules/
+
+# Production
+dist/
+build/
+
+# Environment
+.env
+.env.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

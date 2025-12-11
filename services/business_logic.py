@@ -52,7 +52,7 @@ class ConcentrateurService:
         Raises:
             PermissionError: If user is not 'magasin' profile
         """
-        if not user.is_magasin:
+        if not (user.is_magasin or user.is_admin_profile):
             raise PermissionError("Action réservée au profil Magasin")
         
         concentrateurs = Concentrateur.objects.filter(
@@ -107,10 +107,11 @@ class ConcentrateurService:
         Raises:
             PermissionError: If user is not BO Commande profile
         """
-        if not user.is_bo_commande:
+        if not (user.is_bo_commande or user.is_admin_profile):
             raise PermissionError("Action réservée aux profils BO Commande")
         
-        bo = user.base_operationnelle
+        # For admin users without a BO, use a default BO for testing
+        bo = user.base_operationnelle or 'BO Nord'
         
         # Find cartons with available concentrators
         cartons_dispo = Carton.objects.filter(
@@ -168,7 +169,7 @@ class ConcentrateurService:
             PermissionError: If user is not BO Terrain profile
             TransitionError: If K is not in correct state or not assigned to user's BO
         """
-        if not user.is_bo_terrain:
+        if not (user.is_bo_terrain or user.is_admin_profile):
             raise PermissionError("Action réservée aux profils BO Terrain")
         
         try:
@@ -181,13 +182,14 @@ class ConcentrateurService:
         except Poste.DoesNotExist:
             raise TransitionError(f"Poste {poste_id} non trouvé")
         
-        # Validations
-        if k.affectation != user.base_operationnelle:
-            raise TransitionError(f"Ce K n'est pas affecté à {user.base_operationnelle}")
+        # Validations - skip BO checks for admin users
+        if not user.is_admin_profile:
+            if k.affectation != user.base_operationnelle:
+                raise TransitionError(f"Ce K n'est pas affecté à {user.base_operationnelle}")
+            if poste.base_operationnelle != user.base_operationnelle:
+                raise TransitionError("Ce poste n'appartient pas à votre BO")
         if k.etat != Etat.EN_STOCK:
             raise TransitionError(f"Ce K n'est pas en stock (état actuel: {k.get_etat_display()})")
-        if poste.base_operationnelle != user.base_operationnelle:
-            raise TransitionError("Ce poste n'appartient pas à votre BO")
         
         # Vérifier qu'il n'y a pas déjà un concentrateur posé sur ce poste
         concentrateur_existant = Concentrateur.objects.filter(
@@ -245,7 +247,7 @@ class ConcentrateurService:
             PermissionError: If user is not BO Terrain profile
             TransitionError: If K is not on specified poste or not in 'pose' state
         """
-        if not user.is_bo_terrain:
+        if not (user.is_bo_terrain or user.is_admin_profile):
             raise PermissionError("Action réservée aux profils BO Terrain")
         
         try:
@@ -309,7 +311,7 @@ class ConcentrateurService:
             PermissionError: If user is not 'labo' profile
             TransitionError: If K is not in 'a_tester' state
         """
-        if not user.is_labo:
+        if not (user.is_labo or user.is_admin_profile):
             raise PermissionError("Action réservée au profil Labo")
         
         try:

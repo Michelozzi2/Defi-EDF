@@ -3,7 +3,7 @@ DRF ViewSets and APIViews for all endpoints.
 """
 import logging
 
-from django.db.models import Count
+from django.db.models import Count, Q
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -63,6 +63,19 @@ class LogoutAPIView(APIView):
         return Response({'message': 'Logged out successfully'}, status=status.HTTP_200_OK)
 
 
+@method_decorator(ensure_csrf_cookie, name='dispatch')
+class CSRFTokenView(APIView):
+    """
+    Public endpoint to fetch a CSRF token.
+    Call this on Login page mount to ensure the cookie is set.
+    """
+    permission_classes = []
+    
+    def get(self, request):
+        return Response({'detail': 'CSRF cookie set'})
+
+
+@method_decorator(ensure_csrf_cookie, name='dispatch')
 class CurrentUserView(APIView):
     """Get current authenticated user profile."""
     permission_classes = [IsAuthenticated]
@@ -136,6 +149,18 @@ class CartonViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = queryset.annotate(
             concentrateurs_count=Count('concentrateurs')
         )
+        
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'])
+    def en_livraison(self, request):
+        """Get cartons with concentrateurs currently in delivery (en_livraison state)."""
+        queryset = Carton.objects.filter(
+            concentrateurs__etat=Etat.EN_LIVRAISON
+        ).distinct().annotate(
+            concentrateurs_count=Count('concentrateurs', filter=Q(concentrateurs__etat=Etat.EN_LIVRAISON))
+        ).order_by('-created_at')[:20]
         
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)

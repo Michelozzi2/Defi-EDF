@@ -1,8 +1,47 @@
-# EDF CPL Manager
+# Defi EDF - Concentrateur Tracker
 
 Application web de gestion du cycle de vie des Concentrateurs CPL pour EDF.
 
-## 🚀 Installation
+## Installation
+
+### Backend (Django)
+
+1.  Créer un environnement virtuel :
+    ```bash
+    python3 -m venv venv
+    source venv/bin/activate
+    ```
+2.  Installer les dépendances :
+    ```bash
+    pip install -r requirements.txt
+    ```
+3.  Lancer les migrations :
+    ```bash
+    python manage.py migrate
+    ```
+4.  Lancer le serveur de développement :
+    ```bash
+    python manage.py runserver
+    ```
+
+### Frontend (React/Vite)
+
+Le frontend se trouve dans le dossier `frontend/`.
+
+1.  Aller dans le dossier frontend :
+    ```bash
+    cd frontend
+    ```
+2.  Installer les dépendances :
+    ```bash
+    npm install
+    ```
+3.  Lancer le serveur de développement (en parallèle du backend) :
+    ```bash
+    npm run dev
+    ```
+
+L'application sera accessible sur `http://localhost:5173`.
 
 ### Prérequis
 
