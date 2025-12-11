@@ -189,6 +189,17 @@ class ConcentrateurService:
         if poste.base_operationnelle != user.base_operationnelle:
             raise TransitionError("Ce poste n'appartient pas à votre BO")
         
+        # Vérifier qu'il n'y a pas déjà un concentrateur posé sur ce poste
+        concentrateur_existant = Concentrateur.objects.filter(
+            poste_pose=poste,
+            etat=Etat.POSE
+        ).exclude(n_serie=n_serie).first()
+        
+        if concentrateur_existant:
+            raise TransitionError(
+                f"Un concentrateur est déjà posé sur ce poste: {concentrateur_existant.n_serie}"
+            )
+        
         # Transition
         ancien_etat = k.etat
         k.etat = Etat.POSE

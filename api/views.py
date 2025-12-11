@@ -51,7 +51,7 @@ class ConcentrateurViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated]
     lookup_field = 'n_serie'
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['etat', 'affectation', 'operateur']
+    filterset_fields = ['etat', 'affectation', 'operateur', 'poste_pose']
     search_fields = ['n_serie', 'carton__num_carton']
     ordering_fields = ['n_serie', 'date_dernier_etat', 'created_at']
     ordering = ['-updated_at']
