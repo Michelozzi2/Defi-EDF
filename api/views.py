@@ -11,6 +11,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
+from django.contrib.auth import authenticate, login, logout
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 from apps.core.models import User
 from apps.inventory.models import Concentrateur, Carton, Poste, Etat, Affectation
@@ -28,6 +31,37 @@ logger = logging.getLogger(__name__)
 
 
 # === Auth Views ===
+
+@method_decorator(ensure_csrf_cookie, name='dispatch')
+class LoginAPIView(APIView):
+    """
+    Login endpoint that returns JSON and sets session cookie.
+    Needs ensure_csrf_cookie to bootstrap the CSRF token for the SPA.
+    """
+    permission_classes = []
+
+    def post(self, request):
+        username = request.data.get('username')
+        password = request.data.get('password')
+        
+        user = authenticate(request, username=username, password=password)
+        
+        if user is not None:
+            login(request, user)
+            serializer = UserSerializer(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'Identifiants invalides'}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+class LogoutAPIView(APIView):
+    """Logout endpoint."""
+    permission_classes = []
+
+    def post(self, request):
+        logout(request)
+        return Response({'message': 'Logged out successfully'}, status=status.HTTP_200_OK)
+
 
 class CurrentUserView(APIView):
     """Get current authenticated user profile."""
