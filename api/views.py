@@ -96,7 +96,7 @@ class ConcentrateurViewSet(viewsets.ReadOnlyModelViewSet):
     historique: GET /api/v1/concentrateurs/{n_serie}/historique/
     """
     permission_classes = [IsAuthenticated]
-    pagination_class = None  # Disable pagination - return all results
+    # pagination_class = None  # Re-enabled pagination via settings.py default
     lookup_field = 'n_serie'
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['etat', 'affectation', 'operateur', 'poste_pose']

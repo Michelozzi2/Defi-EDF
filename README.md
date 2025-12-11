@@ -2,15 +2,34 @@
 
 Application web de gestion du cycle de vie des Concentrateurs CPL pour EDF SEI.
 
-## 🚀 Démarrage rapide
+## 🚀 Démarrage rapide (Docker - Recommandé)
 
-### Prérequis
+Le moyen le plus simple de lancer le projet est d'utiliser Docker Compose.
+
+```bash
+# Premier démarrage ou après modification des dépendances (requirements.txt / package.json)
+docker-compose up --build
+
+# Usage quotidien (plus rapide)
+docker-compose up
+```
+
+L'application sera accessible sur :
+- **Frontend** : http://localhost:5173
+- **Backend API** : http://localhost:8000
+- **Admin Django** : http://localhost:8000/admin
+
+### Installation Manuelle (Alternative)
+
+Si vous ne souhaitez pas utiliser Docker :
+
+#### Prérequis
 
 - Python 3.10+
 - Node.js 18+
 - npm
 
-### Installation
+#### Installation
 
 ```bash
 # 1. Backend (Django)
@@ -24,7 +43,7 @@ cd frontend
 npm install
 ```
 
-### Lancement (développement)
+#### Lancement (développement)
 
 Lancer les deux serveurs en parallèle :
 
@@ -42,12 +61,32 @@ L'application sera accessible sur **http://localhost:5173**
 
 ## ⚙️ Configuration
 
-1. Copier le fichier d'environnement :
+1. Copier le fichier d'environnement (si non fait par Docker) :
 ```bash
 cp .env.example .env
 ```
 
 2. Modifier les variables dans `.env` selon votre configuration.
+
+## 🧪 Tests
+
+### Via Docker
+
+Assurez-vous que l'application est lancée (`docker-compose up`).
+
+Pour lancer la suite de tests unitaires dans le conteneur :
+
+```bash
+docker-compose exec backend pytest
+```
+
+### En local
+
+```bash
+source venv/bin/activate
+pytest --ds=config.settings
+```
+
 
 ## 📁 Structure du projet
 
