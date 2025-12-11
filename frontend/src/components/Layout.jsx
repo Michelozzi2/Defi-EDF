@@ -7,21 +7,57 @@ import {
 import clsx from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
+import { useUser } from '../context/UserContext';
 import api from '../services/api';
 
 export default function Layout({ children }) {
     const location = useLocation();
     const navigate = useNavigate();
     const { theme, toggleTheme } = useTheme();
+    const { user } = useUser();
     const [dockExpanded, setDockExpanded] = useState(false);
 
-    const navItems = [
-        { name: 'Tableau de Bord', path: '/dashboard', icon: LayoutDashboard, color: 'bg-[#FE5815]' },
-        { name: 'Réception', path: '/reception', icon: Package, color: 'bg-[#509E2F]' },
-        { name: 'Commande', path: '/commande', icon: ShoppingCart, color: 'bg-[#223555]' },
-        { name: 'Opérations', path: '/operations', icon: Wrench, color: 'bg-blue-600' },
-        { name: 'Laboratoire', path: '/labo', icon: FlaskConical, color: 'bg-[#5CB6DE]' },
+    // Define all nav items with permission check (same logic as WorkspaceSelector)
+    const allNavItems = [
+        {
+            name: 'Tableau de Bord',
+            path: '/dashboard',
+            icon: LayoutDashboard,
+            color: 'bg-[#FE5815]',
+            allowed: true // Dashboard accessible to all logged users
+        },
+        {
+            name: 'Réception',
+            path: '/reception',
+            icon: Package,
+            color: 'bg-[#509E2F]',
+            allowed: user?.profil === 'admin' || user?.profil === 'magasin'
+        },
+        {
+            name: 'Commande',
+            path: '/commande',
+            icon: ShoppingCart,
+            color: 'bg-[#223555]',
+            allowed: user?.profil === 'admin' || user?.profil?.includes('bo')
+        },
+        {
+            name: 'Opérations',
+            path: '/operations',
+            icon: Wrench,
+            color: 'bg-blue-600',
+            allowed: user?.profil === 'admin' || user?.profil?.includes('bo')
+        },
+        {
+            name: 'Laboratoire',
+            path: '/labo',
+            icon: FlaskConical,
+            color: 'bg-[#5CB6DE]',
+            allowed: user?.profil === 'admin' || user?.profil === 'labo'
+        },
     ];
+
+    // Filter nav items based on user permissions
+    const navItems = allNavItems.filter(item => item.allowed);
 
     const handleLogout = async () => {
         await api.post('/auth/logout/');

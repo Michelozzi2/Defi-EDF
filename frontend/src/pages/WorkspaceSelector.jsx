@@ -57,7 +57,7 @@ export default function WorkspaceSelector() {
             icon: Wrench, // Changed to match Layout
             color: 'bg-blue-600',
             path: '/operations',
-            allowed: user.profil === 'admin' || (user.profil && user.profil.includes('bo')) || user.profil === 'magasin',
+            allowed: user.profil === 'admin' || (user.profil && user.profil.includes('bo')),
             external: false
         },
         {
