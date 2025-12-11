@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}Commander Cartons - EDF Tracker{% endblock %}
+{% block page_title %}🛒 Commander Cartons ({{ bo }}){% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto" x-data="commandeForm()">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+        <h2 class="text-lg font-semibold text-slate-800 mb-6">Sélectionner des cartons</h2>
+        
+        <div class="space-y-5">
+            <!-- Opérateur -->
+            <div>
+                <label for="operateur" class="block text-sm font-medium text-slate-600 mb-2">
+                    Opérateur
+                </label>
+                <select id="operateur"
+                        x-model="operateur"
+                        @change="checkDisponibles()"
+                        class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-edf-blue focus:border-transparent transition-all bg-white">
+                    <option value="">Sélectionner un opérateur</option>
+                    {% for value, label in operateurs %}
+                    <option value="{{ value }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <!-- Disponibles info -->
+            <div x-show="disponibles !== null" 
+                 x-cloak
+                 class="p-4 rounded-xl"
+                 :class="disponibles > 0 ? 'bg-emerald-50 border border-emerald-200' : 'bg-amber-50 border border-amber-200'">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center"
+                         :class="disponibles > 0 ? 'bg-emerald-500' : 'bg-amber-500'">
+                        <span class="text-white font-bold" x-text="disponibles"></span>
+                    </div>
+                    <div>
+                        <p class="font-medium" :class="disponibles > 0 ? 'text-emerald-800' : 'text-amber-800'">
+                            Cartons disponibles
+                        </p>
+                        <p class="text-sm" :class="disponibles > 0 ? 'text-emerald-600' : 'text-amber-600'">
+                            <span x-text="totalK"></span> concentrateurs au total
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Nombre de cartons -->
+            <div x-show="disponibles > 0" x-cloak>
+                <label class="block text-sm font-medium text-slate-600 mb-2">
+                    Nombre à commander
+                </label>
+                <div class="flex items-center gap-4">
+                    <button @click="nbCartons = Math.max(1, nbCartons - 1)"
+                            class="w-12 h-12 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xl transition-colors">
+                        −
+                    </button>
+                    <div class="flex-1 text-center">
+                        <input type="number" 
+                               x-model.number="nbCartons"
+                               min="1"
+                               :max="disponibles"
+                               class="w-20 text-center text-2xl font-bold text-slate-800 border-b-2 border-edf-blue focus:outline-none">
+                    </div>
+                    <button @click="nbCartons = Math.min(disponibles, nbCartons + 1)"
+                            class="w-12 h-12 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xl transition-colors">
+                        +
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Submit -->
+            <button x-show="disponibles > 0"
+                    x-cloak
+                    @click="commander()"
+                    :disabled="!operateur || nbCartons < 1 || submitting"
+                    class="w-full py-3.5 px-4 bg-edf-orange hover:bg-edf-orange/90 text-white font-semibold rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-edf-orange/30">
+                <svg x-show="submitting" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <svg x-show="!submitting" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                </svg>
+                <span x-text="submitting ? 'Commande en cours...' : 'Valider commande'"></span>
+            </button>
+        </div>
+        
+        <p class="mt-4 text-sm text-slate-500 text-center">
+            Les concentrateurs seront affectés à <strong>{{ bo }}</strong> immédiatement.
+        </p>
+    </div>
+    
+    <!-- Success result -->
+    <div x-show="result" x-cloak class="mt-6">
+        <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-6">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-emerald-800">Commande validée</h3>
+            </div>
+            <p class="text-emerald-700">
+                <span x-text="result?.cartons?.length"></span> carton(s) commandé(s) contenant <span x-text="result?.total_k" class="font-semibold"></span> concentrateur(s).
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+function commandeForm() {
+    return {
+        operateur: '',
+        nbCartons: 1,
+        disponibles: null,
+        totalK: 0,
+        submitting: false,
+        result: null,
+        
+        async checkDisponibles() {
+            if (!this.operateur) {
+                this.disponibles = null;
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/v1/cartons/disponibles/?operateur=${encodeURIComponent(this.operateur)}`);
+                const data = await response.json();
+                
+                this.disponibles = data.length;
+                this.totalK = data.reduce((sum, c) => sum + c.nb_concentrateurs, 0);
+                this.nbCartons = Math.min(1, this.disponibles);
+            } catch (e) {
+                this.disponibles = 0;
+            }
+        },
+        
+        async commander() {
+            if (!this.operateur || this.nbCartons < 1) return;
+            
+            this.submitting = true;
+            this.result = null;
+            
+            try {
+                const response = await fetch('/api/v1/actions/commande/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''
+                    },
+                    body: JSON.stringify({
+                        operateur: this.operateur,
+                        nb_cartons: this.nbCartons
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    this.result = data;
+                    this.checkDisponibles(); // Refresh
+                    window.dispatchEvent(new CustomEvent('notify', {
+                        detail: { message: `${data.total_k} concentrateur(s) commandé(s)`, type: 'success' }
+                    }));
+                } else {
+                    const error = await response.json();
+                    window.dispatchEvent(new CustomEvent('notify', {
+                        detail: { message: error.error || 'Erreur', type: 'error' }
+                    }));
+                }
+            } catch (e) {
+                window.dispatchEvent(new CustomEvent('notify', {
+                    detail: { message: 'Erreur de connexion', type: 'error' }
+                }));
+            }
+            
+            this.submitting = false;
+        }
+    }
+}
+</script>
+{% endblock %}

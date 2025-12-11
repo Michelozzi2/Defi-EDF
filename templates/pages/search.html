@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}Recherche - EDF Tracker{% endblock %}
+{% block page_title %}🔎 Recherche Concentrateur{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto" x-data="searchPage()">
+    <!-- Search -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
+        <div class="flex gap-2">
+            <input type="text" 
+                   x-model="query"
+                   @keyup.enter="search()"
+                   placeholder="Entrez un N° série..."
+                   class="flex-1 px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-edf-blue focus:border-transparent">
+            <button @click="search()"
+                    :disabled="!query || loading"
+                    class="px-6 py-3 bg-edf-blue hover:bg-edf-blue-light text-white rounded-xl transition-all disabled:opacity-50 flex items-center gap-2">
+                <svg x-show="loading" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Rechercher</span>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Result -->
+    <div x-show="concentrateur" x-cloak>
+        <!-- Info card -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
+            <div class="flex items-start justify-between mb-4">
+                <h2 class="text-xl font-mono font-bold text-slate-800" x-text="concentrateur?.n_serie"></h2>
+                <span class="px-3 py-1 text-sm font-medium rounded-full"
+                      :class="{
+                          'bg-emerald-100 text-emerald-700': concentrateur?.etat === 'en_stock',
+                          'bg-blue-100 text-blue-700': concentrateur?.etat === 'pose',
+                          'bg-amber-100 text-amber-700': concentrateur?.etat === 'en_livraison' || concentrateur?.etat === 'a_tester',
+                          'bg-red-100 text-red-700': concentrateur?.etat === 'HS'
+                      }"
+                      x-text="concentrateur?.etat_display"></span>
+            </div>
+            
+            <div class="grid sm:grid-cols-2 gap-4">
+                <div class="p-3 bg-slate-50 rounded-xl">
+                    <p class="text-sm text-slate-500">Opérateur</p>
+                    <p class="font-medium text-slate-800" x-text="concentrateur?.operateur"></p>
+                </div>
+                <div class="p-3 bg-slate-50 rounded-xl">
+                    <p class="text-sm text-slate-500">Carton</p>
+                    <p class="font-medium text-slate-800" x-text="concentrateur?.carton?.num_carton || '-'"></p>
+                </div>
+                <div class="p-3 bg-slate-50 rounded-xl">
+                    <p class="text-sm text-slate-500">Affectation</p>
+                    <p class="font-medium text-slate-800" x-text="concentrateur?.affectation || '-'"></p>
+                </div>
+                <div class="p-3 bg-slate-50 rounded-xl">
+                    <p class="text-sm text-slate-500">Poste</p>
+                    <p class="font-medium text-slate-800" x-text="concentrateur?.poste_pose?.code || '-'"></p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Historique -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+            <h3 class="text-lg font-semibold text-slate-800 mb-6">Historique</h3>
+            
+            <div class="relative">
+                <!-- Timeline line -->
+                <div class="absolute left-3 top-3 bottom-3 w-0.5 bg-slate-200"></div>
+                
+                <!-- Timeline items -->
+                <div class="space-y-6">
+                    <template x-for="h in historique" :key="h.id">
+                        <div class="relative flex gap-4">
+                            <div class="w-6 h-6 rounded-full bg-edf-blue flex items-center justify-center z-10">
+                                <div class="w-2 h-2 rounded-full bg-white"></div>
+                            </div>
+                            <div class="flex-1 pb-4">
+                                <div class="flex items-center justify-between mb-1">
+                                    <p class="font-medium text-slate-800" x-text="h.action_display"></p>
+                                    <time class="text-sm text-slate-500" x-text="new Date(h.timestamp).toLocaleString('fr-FR')"></time>
+                                </div>
+                                <p class="text-sm text-slate-600">
+                                    par <span class="font-medium" x-text="h.user_name || 'Système'"></span>
+                                </p>
+                                <div x-show="h.nouvel_etat || h.nouvelle_affectation" class="mt-2 text-sm">
+                                    <span x-show="h.ancien_etat" class="text-slate-500" x-text="h.ancien_etat"></span>
+                                    <span x-show="h.ancien_etat && h.nouvel_etat" class="text-slate-400 mx-1">→</span>
+                                    <span x-show="h.nouvel_etat" class="text-edf-blue font-medium" x-text="h.nouvel_etat"></span>
+                                    <span x-show="h.poste" class="ml-2 text-slate-500">
+                                        (Poste: <span x-text="h.poste"></span>)
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                    
+                    <div x-show="historique.length === 0" class="text-center py-8 text-slate-500">
+                        Aucun historique disponible
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function searchPage() {
+    return {
+        query: '',
+        concentrateur: null,
+        historique: [],
+        loading: false,
+        
+        async search() {
+            if (!this.query) return;
+            
+            this.loading = true;
+            this.concentrateur = null;
+            this.historique = [];
+            
+            try {
+                // Get concentrator details
+                const response = await fetch(`/api/v1/concentrateurs/${encodeURIComponent(this.query)}/`);
+                
+                if (response.ok) {
+                    this.concentrateur = await response.json();
+                    
+                    // Get historique
+                    const histResponse = await fetch(`/api/v1/concentrateurs/${encodeURIComponent(this.query)}/historique/`);
+                    if (histResponse.ok) {
+                        this.historique = await histResponse.json();
+                    }
+                } else {
+                    window.dispatchEvent(new CustomEvent('notify', {
+                        detail: { message: 'Concentrateur non trouvé', type: 'error' }
+                    }));
+                }
+            } catch (e) {
+                window.dispatchEvent(new CustomEvent('notify', {
+                    detail: { message: 'Erreur de recherche', type: 'error' }
+                }));
+            }
+            
+            this.loading = false;
+        }
+    }
+}
+</script>
+{% endblock %}

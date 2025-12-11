@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}{{ concentrateur.n_serie }} - EDF Tracker{% endblock %}
+{% block page_title %}🔎 Détail Concentrateur{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <!-- Info card -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
+        <div class="flex items-start justify-between mb-4">
+            <h2 class="text-xl font-mono font-bold text-slate-800">{{ concentrateur.n_serie }}</h2>
+            <span class="px-3 py-1 text-sm font-medium rounded-full
+                {% if concentrateur.etat == 'en_stock' %}bg-emerald-100 text-emerald-700
+                {% elif concentrateur.etat == 'pose' %}bg-blue-100 text-blue-700
+                {% elif concentrateur.etat == 'HS' %}bg-red-100 text-red-700
+                {% else %}bg-amber-100 text-amber-700{% endif %}">
+                {{ concentrateur.get_etat_display }}
+            </span>
+        </div>
+        
+        <div class="grid sm:grid-cols-2 gap-4">
+            <div class="p-3 bg-slate-50 rounded-xl">
+                <p class="text-sm text-slate-500">Opérateur</p>
+                <p class="font-medium text-slate-800">{{ concentrateur.operateur }}</p>
+            </div>
+            <div class="p-3 bg-slate-50 rounded-xl">
+                <p class="text-sm text-slate-500">Carton</p>
+                <p class="font-medium text-slate-800">{{ concentrateur.carton.num_carton|default:'-' }}</p>
+            </div>
+            <div class="p-3 bg-slate-50 rounded-xl">
+                <p class="text-sm text-slate-500">Affectation</p>
+                <p class="font-medium text-slate-800">{{ concentrateur.affectation|default:'-' }}</p>
+            </div>
+            <div class="p-3 bg-slate-50 rounded-xl">
+                <p class="text-sm text-slate-500">Poste</p>
+                <p class="font-medium text-slate-800">{{ concentrateur.poste_pose.code|default:'-' }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Historique -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+        <h3 class="text-lg font-semibold text-slate-800 mb-6">Historique</h3>
+        
+        <div class="relative">
+            <!-- Timeline line -->
+            <div class="absolute left-3 top-3 bottom-3 w-0.5 bg-slate-200"></div>
+            
+            <!-- Timeline items -->
+            <div class="space-y-6">
+                {% for h in historique %}
+                <div class="relative flex gap-4">
+                    <div class="w-6 h-6 rounded-full bg-edf-blue flex items-center justify-center z-10">
+                        <div class="w-2 h-2 rounded-full bg-white"></div>
+                    </div>
+                    <div class="flex-1 pb-4">
+                        <div class="flex items-center justify-between mb-1">
+                            <p class="font-medium text-slate-800">{{ h.get_action_display }}</p>
+                            <time class="text-sm text-slate-500">{{ h.timestamp|date:"d/m/Y H:i" }}</time>
+                        </div>
+                        <p class="text-sm text-slate-600">
+                            par <span class="font-medium">{{ h.user.username|default:"Système" }}</span>
+                        </p>
+                        {% if h.nouvel_etat or h.nouvelle_affectation %}
+                        <div class="mt-2 text-sm">
+                            {% if h.ancien_etat %}
+                            <span class="text-slate-500">{{ h.ancien_etat }}</span>
+                            <span class="text-slate-400 mx-1">→</span>
+                            {% endif %}
+                            {% if h.nouvel_etat %}
+                            <span class="text-edf-blue font-medium">{{ h.nouvel_etat }}</span>
+                            {% endif %}
+                            {% if h.poste %}
+                            <span class="ml-2 text-slate-500">(Poste: {{ h.poste }})</span>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-8 text-slate-500">
+                    Aucun historique disponible
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-6">
+        <a href="{% url 'dashboard:search' %}" class="text-edf-blue hover:underline flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            Retour à la recherche
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,18 @@
+# Django Core
+Django>=5.0,<6.0
+djangorestframework>=3.14,<4.0
+django-cors-headers>=4.3,<5.0
+django-filter>=23.5,<24.0
+
+# Database
+psycopg2-binary>=2.9,<3.0
+
+# Import/Export
+django-import-export>=3.3,<4.0
+
+# Development
+python-dotenv>=1.0,<2.0
+
+# Testing
+pytest-django>=4.5,<5.0
+factory-boy>=3.3,<4.0

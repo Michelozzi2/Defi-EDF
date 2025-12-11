@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+
+{% block title %}Pose / Dépose - EDF Tracker{% endblock %}
+{% block page_title %}🔧 Actions Terrain ({{ bo }}){% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto" x-data="terrainForm()">
+    <!-- Mode tabs -->
+    <div class="flex gap-2 mb-6">
+        <button @click="mode = 'pose'"
+                :class="mode === 'pose' ? 'bg-edf-blue text-white' : 'bg-white text-slate-600 hover:bg-slate-50'"
+                class="flex-1 py-3 px-4 rounded-xl font-medium transition-all border border-slate-200">
+            Pose
+        </button>
+        <button @click="mode = 'depose'"
+                :class="mode === 'depose' ? 'bg-amber-500 text-white' : 'bg-white text-slate-600 hover:bg-slate-50'"
+                class="flex-1 py-3 px-4 rounded-xl font-medium transition-all border border-slate-200">
+            Dépose
+        </button>
+    </div>
+    
+    <!-- Pose mode -->
+    <div x-show="mode === 'pose'" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+        <h2 class="text-lg font-semibold text-slate-800 mb-6">Poser un concentrateur</h2>
+        
+        <div class="space-y-5">
+            <!-- Poste selection -->
+            <div>
+                <label for="poste_pose" class="block text-sm font-medium text-slate-600 mb-2">
+                    Poste
+                </label>
+                <select id="poste_pose"
+                        x-model="selectedPoste"
+                        class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-edf-blue focus:border-transparent transition-all bg-white">
+                    <option value="">Sélectionner un poste</option>
+                    {% for poste in postes %}
+                    <option value="{{ poste.id }}">{{ poste.code }} - {{ poste.nom }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <!-- N° série -->
+            <div>
+                <label for="n_serie_pose" class="block text-sm font-medium text-slate-600 mb-2">
+                    N° Série Concentrateur
+                </label>
+                <input type="text" 
+                       id="n_serie_pose"
+                       x-model="nSerie"
+                       class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-edf-blue focus:border-transparent transition-all"
+                       placeholder="Ex: KB71O205687">
+            </div>
+            
+            <!-- Submit -->
+            <button @click="poser()"
+                    :disabled="!selectedPoste || !nSerie || submitting"
+                    class="w-full py-3.5 px-4 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/30">
+                <svg x-show="submitting" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <svg x-show="!submitting" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                <span x-text="submitting ? 'Pose en cours...' : 'Confirmer pose'"></span>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Depose mode -->
+    <div x-show="mode === 'depose'" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+        <h2 class="text-lg font-semibold text-slate-800 mb-6">Déposer un concentrateur</h2>
+        
+        <div class="space-y-5">
+            <!-- Poste selection -->
+            <div>
+                <label for="poste_depose" class="block text-sm font-medium text-slate-600 mb-2">
+                    Poste
+                </label>
+                <select id="poste_depose"
+                        x-model="selectedPosteDepose"
+                        @change="loadKonPoste()"
+                        class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all bg-white">
+                    <option value="">Sélectionner un poste</option>
+                    {% for poste in postes %}
+                    <option value="{{ poste.id }}">{{ poste.code }} - {{ poste.nom }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <!-- K on poste -->
+            <div x-show="concentrateursOnPoste.length > 0" x-cloak>
+                <label class="block text-sm font-medium text-slate-600 mb-2">
+                    Concentrateurs sur ce poste
+                </label>
+                <div class="space-y-2">
+                    <template x-for="k in concentrateursOnPoste" :key="k.n_serie">
+                        <label class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:border-amber-300 cursor-pointer transition-all"
+                               :class="selectedKDepose === k.n_serie ? 'border-amber-500 bg-amber-50' : ''">
+                            <input type="radio" 
+                                   name="k_depose" 
+                                   :value="k.n_serie"
+                                   x-model="selectedKDepose"
+                                   class="w-4 h-4 text-amber-500 focus:ring-amber-500">
+                            <span class="font-mono font-medium text-slate-800" x-text="k.n_serie"></span>
+                        </label>
+                    </template>
+                </div>
+            </div>
+            
+            <div x-show="selectedPosteDepose && concentrateursOnPoste.length === 0" x-cloak
+                 class="p-4 bg-slate-50 rounded-xl text-center text-slate-500">
+                Aucun concentrateur sur ce poste
+            </div>
+            
+            <!-- Submit -->
+            <button x-show="concentrateursOnPoste.length > 0"
+                    @click="deposer()"
+                    :disabled="!selectedPosteDepose || !selectedKDepose || submitting"
+                    class="w-full py-3.5 px-4 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-amber-500/30">
+                <svg x-show="submitting" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <svg x-show="!submitting" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+                </svg>
+                <span x-text="submitting ? 'Dépose en cours...' : 'Déposer → Labo'"></span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function terrainForm() {
+    return {
+        mode: 'pose',
+        selectedPoste: '',
+        nSerie: '',
+        selectedPosteDepose: '',
+        concentrateursOnPoste: [],
+        selectedKDepose: '',
+        submitting: false,
+        
+        async loadKonPoste() {
+            if (!this.selectedPosteDepose) {
+                this.concentrateursOnPoste = [];
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/v1/concentrateurs/?etat=pose&poste_pose=${this.selectedPosteDepose}`);
+                const data = await response.json();
+                this.concentrateursOnPoste = data.results || [];
+                this.selectedKDepose = '';
+            } catch (e) {
+                this.concentrateursOnPoste = [];
+            }
+        },
+        
+        async poser() {
+            if (!this.selectedPoste || !this.nSerie) return;
+            
+            this.submitting = true;
+            
+            try {
+                const response = await fetch('/api/v1/actions/pose/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''
+                    },
+                    body: JSON.stringify({
+                        n_serie: this.nSerie,
+                        poste_id: parseInt(this.selectedPoste)
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    window.dispatchEvent(new CustomEvent('notify', {
+                        detail: { message: `${data.n_serie} posé sur ${data.poste}`, type: 'success' }
+                    }));
+                    this.nSerie = '';
+                } else {
+                    const error = await response.json();
+                    window.dispatchEvent(new CustomEvent('notify', {
+                        detail: { message: error.error || 'Erreur', type: 'error' }
+                    }));
+                }
+            } catch (e) {
+                window.dispatchEvent(new CustomEvent('notify', {
+                    detail: { message: 'Erreur de connexion', type: 'error' }
+                }));
+            }
+            
+            this.submitting = false;
+        },
+        
+        async deposer() {
+            if (!this.selectedPosteDepose || !this.selectedKDepose) return;
+            
+            this.submitting = true;
+            
+            try {
+                const response = await fetch('/api/v1/actions/depose/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''
+                    },
+                    body: JSON.stringify({
+                        poste_id: parseInt(this.selectedPosteDepose),
+                        n_serie: this.selectedKDepose
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    window.dispatchEvent(new CustomEvent('notify', {
+                        detail: { message: `${data.n_serie} déposé → Labo`, type: 'success' }
+                    }));
+                    this.loadKonPoste();
+                } else {
+                    const error = await response.json();
+                    window.dispatchEvent(new CustomEvent('notify', {
+                        detail: { message: error.error || 'Erreur', type: 'error' }
+                    }));
+                }
+            } catch (e) {
+                window.dispatchEvent(new CustomEvent('notify', {
+                    detail: { message: 'Erreur de connexion', type: 'error' }
+                }));
+            }
+            
+            this.submitting = false;
+        }
+    }
+}
+</script>
+{% endblock %}
