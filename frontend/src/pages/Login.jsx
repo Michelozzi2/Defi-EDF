@@ -11,15 +11,34 @@ export default function Login() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
-    const [csrfReady, setCsrfReady] = useState(false);
 
     const navigate = useNavigate();
 
-    // Fix Double Login: Fetch CSRF cookie on mount via dedicated endpoint
+    // Helper to check if CSRF cookie exists
+    const getCsrfCookie = () => {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            const [name, value] = cookie.trim().split('=');
+            if (name === 'csrftoken') return value;
+        }
+        return null;
+    };
+
+    // Ensure CSRF token is set before proceeding
+    const ensureCsrf = async () => {
+        if (getCsrfCookie()) return true;
+        try {
+            await api.get('/auth/csrf/');
+            await new Promise(resolve => setTimeout(resolve, 50));
+            return !!getCsrfCookie();
+        } catch (e) {
+            return false;
+        }
+    };
+
+    // Fetch CSRF cookie on mount
     useEffect(() => {
-        api.get('/auth/csrf/')
-            .then(() => setCsrfReady(true))
-            .catch(() => setCsrfReady(true)); // Even on error, allow login attempt
+        ensureCsrf();
     }, []);
 
     const handleLogin = async (e) => {
@@ -27,23 +46,15 @@ export default function Login() {
         setLoading(true);
         setError('');
 
-        // If CSRF not ready yet, wait a bit
-        if (!csrfReady) {
-            try {
-                await api.get('/auth/csrf/');
-            } catch (e) { }
-        }
+        await ensureCsrf();
 
         try {
             await api.post('/auth/login/', { username, password });
             navigate('/workspaces');
         } catch (err) {
-            // If CSRF error (403), try to refresh token and retry once
             if (err.response && err.response.status === 403) {
+                await ensureCsrf();
                 try {
-                    await api.get('/auth/csrf/');
-                    // Wait for cookie to be set
-                    await new Promise(resolve => setTimeout(resolve, 100));
                     await api.post('/auth/login/', { username, password });
                     navigate('/workspaces');
                     return;

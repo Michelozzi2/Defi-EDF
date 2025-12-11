@@ -156,26 +156,22 @@ export default function Operations() {
 
     const findConcentratorOnPoste = async (pid) => {
         try {
-            // We search for a concentrator that is 'pose' on this poste
-            // Ideally we should have a backend filter, but we might have to search
-            // For hackathon speed, let's try to query by poste_id if supported or filter client side if not too many
-            const res = await api.get('/concentrateurs/', { params: { etat: 'pose' } });
-            // This is inefficient if many poses, but usually okay for hackathon. 
-            // Better: backend filter `?poste_pose_id=X`. Let's assume we can filter on client for now or try param.
-
-            const allPoses = res.data.results || res.data;
-            const found = allPoses.find(c => c.poste_code && c.poste_pose?.id === pid || c.poste_pose === pid); // Check both object or ID
-
-            if (found) {
-                setNSerie(found.n_serie);
+            // Use backend filter: etat=pose and poste_pose=pid
+            const res = await api.get('/concentrateurs/', {
+                params: {
+                    etat: 'pose',
+                    poste_pose: pid
+                }
+            });
+            const found = res.data.results || res.data;
+            if (found.length > 0) {
+                setNSerie(found[0].n_serie);
             } else {
-                // Try specific endpoint if exists or just standard filter
-                const res2 = await api.get(`/concentrateurs/?search=${pid}`); // Sometimes search works on relations
-                const found2 = (res2.data.results || res2.data).find(c => c.etat === 'pose');
-                if (found2) setNSerie(found2.n_serie);
+                setNSerie(''); // Clear if no concentrator found
             }
         } catch (e) {
             console.error("Error finding concentrator on poste", e);
+            setNSerie('');
         }
     };
 

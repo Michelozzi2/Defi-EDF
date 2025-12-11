@@ -96,6 +96,7 @@ class ConcentrateurViewSet(viewsets.ReadOnlyModelViewSet):
     historique: GET /api/v1/concentrateurs/{n_serie}/historique/
     """
     permission_classes = [IsAuthenticated]
+    pagination_class = None  # Disable pagination - return all results
     lookup_field = 'n_serie'
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['etat', 'affectation', 'operateur', 'poste_pose']
@@ -160,7 +161,7 @@ class CartonViewSet(viewsets.ReadOnlyModelViewSet):
             concentrateurs__etat=Etat.EN_LIVRAISON
         ).distinct().annotate(
             concentrateurs_count=Count('concentrateurs', filter=Q(concentrateurs__etat=Etat.EN_LIVRAISON))
-        ).order_by('-created_at')[:20]
+        ).order_by('-created_at')
         
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)

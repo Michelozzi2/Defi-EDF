@@ -61,26 +61,11 @@ export default function Dashboard() {
                 affectation: filterAffectation
             };
 
-            // Fetch all pages at once
-            let allResults = [];
-            let url = '/concentrateurs/';
-
-            while (url) {
-                const res = await api.get(url, { params: url === '/concentrateurs/' ? params : {} });
-                const pageResults = res.data.results || res.data;
-                allResults = [...allResults, ...pageResults];
-                setTotalCount(res.data.count || allResults.length);
-
-                // Get next page URL
-                if (res.data.next) {
-                    url = res.data.next.replace(/^https?:\/\/[^/]+/, '');
-                    // Clear params for subsequent requests since URL includes them
-                } else {
-                    url = null;
-                }
-            }
-
-            setResults(allResults);
+            // Simple fetch without pagination
+            const res = await api.get('/concentrateurs/', { params });
+            const data = res.data.results || res.data;
+            setResults(data);
+            setTotalCount(res.data.count || data.length);
         } catch (error) {
             console.error("Error fetching inventory:", error);
         } finally {
@@ -117,14 +102,15 @@ export default function Dashboard() {
     const aTester = stats?.by_etat?.['a_tester'] || 0;
 
     // Prepare chart data with EDF Colors
-    // EDF Palette: Blue #001A70, Green #509E2F, Orange #FE5815, Red #EF4444
+    // EDF Palette: Blue #001A70, Green #509E2F, Orange #FE5815, Red #EF4444, Violet #8B5CF6
     const etatData = stats?.by_etat ? Object.entries(stats.by_etat).map(([key, value]) => ({
-        name: key.replace('_', ' ').toUpperCase(),
+        name: key.replace(/_/g, ' ').toUpperCase(),
         value: value,
         color: key === 'en_stock' ? '#509E2F' :  // Vert EDF
             key === 'HS' ? '#EF4444' :        // Rouge
                 key === 'en_livraison' ? '#FE5815' : // Orange EDF
-                    '#001A70'                         // Bleu EDF (default/autres)
+                    key === 'en_attente_reconditionnement' ? '#8B5CF6' : // Violet
+                        '#001A70'                         // Bleu EDF (default/autres)
     })) : [];
 
     const affectationData = stats?.by_affectation ? Object.entries(stats.by_affectation).map(([key, value]) => ({
@@ -135,7 +121,7 @@ export default function Dashboard() {
     const COLORS = ['#001A70', '#509E2F', '#FE5815', '#EF4444', '#8884d8'];
 
     return (
-        <div className="space-y-8 relative pb-20">
+        <div className="space-y-8 pb-24">
             <header className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-bold text-[#001A70] dark:text-white mb-2">Tableau de Bord Global</h1>
@@ -147,7 +133,7 @@ export default function Dashboard() {
             </header>
 
             {/* KPI Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatCard title="Total Concentrateurs" value={total} icon={BarChart3} colorClass="bg-blue-600" delay={0.1} />
                 <StatCard title="En Stock" value={enStock} icon={Package} colorClass="bg-[#509E2F]" delay={0.2} />
                 <StatCard title="En Livraison" value={enLivraison} icon={Truck} colorClass="bg-[#FE5815]" delay={0.3} />
@@ -155,9 +141,9 @@ export default function Dashboard() {
             </div>
 
             {/* Charts Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="bg-white dark:bg-[#16202A] p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 h-96 flex flex-col">
-                    <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-6">Répartition par État</h3>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="bg-white dark:bg-[#16202A] p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 h-72 flex flex-col">
+                    <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-4">Répartition par État</h3>
                     <div className="flex-1 min-h-0 w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             {etatData.length > 0 ? (
@@ -182,8 +168,8 @@ export default function Dashboard() {
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-[#16202A] p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 h-96 flex flex-col">
-                    <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-6">Répartition par Affectation</h3>
+                <div className="bg-white dark:bg-[#16202A] p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 h-72 flex flex-col">
+                    <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-4">Répartition par Affectation</h3>
                     <div className="flex-1 min-h-0 w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             {affectationData.length > 0 ? (
@@ -216,11 +202,11 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            {/* Isolated Search Module */}
-            <div className="relative isolate">
+            {/* Isolated Search Module - Takes remaining space */}
+            <div className="flex-1 min-h-0 flex flex-col">
                 {/* Visual Distinction Wrapper */}
-                <div className="bg-gradient-to-br from-blue-50/50 to-white dark:from-blue-900/10 dark:to-[#16202A] rounded-3xl p-1 shadow-lg border-2 border-blue-100 dark:border-blue-900/30">
-                    <div className="bg-white dark:bg-[#16202A] rounded-2xl p-6 md:p-8 space-y-6">
+                <div className="h-full bg-gradient-to-br from-blue-50/50 to-white dark:from-blue-900/10 dark:to-[#16202A] rounded-2xl p-1 shadow-lg border-2 border-blue-100 dark:border-blue-900/30">
+                    <div className="h-full bg-white dark:bg-[#16202A] rounded-xl p-4 flex flex-col gap-3">
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-100 dark:border-gray-700 pb-4">
                             <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                                 <Search size={24} className="text-[#FE5815]" />
@@ -277,11 +263,12 @@ export default function Dashboard() {
                             </span>
                         </div>
 
-                        <div className="overflow-auto rounded-xl border border-gray-100 dark:border-gray-700 max-h-[300px]">
+                        <div className="overflow-auto rounded-xl border border-gray-100 dark:border-gray-700 flex-1">
                             <table className="w-full text-left text-sm text-gray-600 dark:text-gray-300">
                                 <thead className="bg-gray-50 dark:bg-[#0F1720] text-gray-900 dark:text-white font-semibold sticky top-0">
                                     <tr>
                                         <th className="p-3">N° Série</th>
+                                        <th className="p-3">Carton</th>
                                         <th className="p-3">État</th>
                                         <th className="p-3">Affectation</th>
                                         <th className="p-3">Opérateur</th>
@@ -296,13 +283,15 @@ export default function Dashboard() {
                                             className="hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors cursor-pointer group"
                                         >
                                             <td className="p-3 font-mono font-medium text-blue-600 dark:text-blue-400 group-hover:text-[#FE5815] transition-colors">{c.n_serie}</td>
+                                            <td className="p-3 font-mono text-xs">{c.carton || '-'}</td>
                                             <td className="p-3">
                                                 <span className={clsx(
                                                     "px-2 py-0.5 rounded-full text-xs font-semibold",
                                                     c.etat === 'en_stock' ? "bg-green-100 text-[#509E2F] dark:bg-green-900/40 dark:text-green-300" :
                                                         c.etat === 'HS' ? "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300" :
                                                             c.etat === 'en_livraison' ? "bg-orange-100 text-[#FE5815] dark:bg-orange-900/40 dark:text-orange-300" :
-                                                                "bg-blue-100 text-[#001A70] dark:bg-blue-900/40 dark:text-blue-300"
+                                                                c.etat === 'en_attente_reconditionnement' ? "bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300" :
+                                                                    "bg-blue-100 text-[#001A70] dark:bg-blue-900/40 dark:text-blue-300"
                                                 )}>
                                                     {c.etat}
                                                 </span>
@@ -314,12 +303,12 @@ export default function Dashboard() {
                                     ))}
                                     {results.length === 0 && !searching && (
                                         <tr>
-                                            <td colSpan="5" className="p-6 text-center text-gray-400">Aucun résultat trouvé.</td>
+                                            <td colSpan="6" className="p-6 text-center text-gray-400">Aucun résultat trouvé.</td>
                                         </tr>
                                     )}
                                     {searching && (
                                         <tr>
-                                            <td colSpan="5" className="p-6 text-center text-gray-400">Recherche en cours...</td>
+                                            <td colSpan="6" className="p-6 text-center text-gray-400">Recherche en cours...</td>
                                         </tr>
                                     )}
                                 </tbody>
