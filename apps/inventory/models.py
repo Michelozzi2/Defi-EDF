@@ -26,6 +26,7 @@ class Etat(models.TextChoices):
     EN_STOCK = 'en_stock', 'En stock'
     POSE = 'pose', 'Posé'
     A_TESTER = 'a_tester', 'À tester'
+    EN_ATTENTE_RECONDITIONNEMENT = 'en_attente_recond', 'En attente reconditionnement'
     HS = 'HS', 'Hors service'
 
 
@@ -86,6 +87,10 @@ class Carton(models.Model):
     created_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name="Date création"
+    )
+    is_reconditionne = models.BooleanField(
+        default=False,
+        verbose_name="Reconditionné"
     )
     
     class Meta:

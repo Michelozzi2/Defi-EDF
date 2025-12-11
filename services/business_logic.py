@@ -113,12 +113,16 @@ class ConcentrateurService:
         # For admin users without a BO, use a default BO for testing
         bo = user.base_operationnelle or 'BO Nord'
         
-        # Find cartons with available concentrators
+        # Find cartons with at least 4 available concentrators (règle métier)
+        from django.db.models import Count, Q
         cartons_dispo = Carton.objects.filter(
-            operateur=operateur,
-            concentrateurs__affectation=Affectation.MAGASIN,
-            concentrateurs__etat=Etat.EN_STOCK
-        ).distinct()[:nb_cartons]
+            operateur=operateur
+        ).annotate(
+            nb_k_dispo=Count('concentrateurs', filter=Q(
+                concentrateurs__affectation=Affectation.MAGASIN,
+                concentrateurs__etat=Etat.EN_STOCK
+            ))
+        ).filter(nb_k_dispo__gte=4).order_by('-created_at')[:nb_cartons]
         
         result = {'cartons': [], 'total_k': 0}
         
@@ -296,8 +300,11 @@ class ConcentrateurService:
         """
         Labo: teste un K.
         
-        - Si OK: état = en_stock, affectation = Magasin
+        - Si OK: état = en_stock, affectation = Magasin, détaché du carton
         - Si HS: état = HS, affectation = vide
+        
+        Quand le K passe OK, on vérifie s'il y a 4 K du même opérateur en attente
+        pour créer automatiquement un carton reconditionné.
         
         Args:
             n_serie: Serial number of concentrator
@@ -324,10 +331,12 @@ class ConcentrateurService:
         
         ancien_etat = k.etat
         ancienne_affectation = k.affectation
+        operateur = k.operateur
         
         if resultat_ok:
-            k.etat = Etat.EN_STOCK
+            k.etat = Etat.EN_ATTENTE_RECONDITIONNEMENT
             k.affectation = Affectation.MAGASIN
+            k.carton = None  # Détacher du carton d'origine
             action = ActionType.TEST_OK
         else:
             k.etat = Etat.HS
@@ -347,9 +356,98 @@ class ConcentrateurService:
         result_str = 'OK' if resultat_ok else 'HS'
         logger.info(f"Test {n_serie}: {result_str} par {user.username}")
         
-        return {
+        result = {
             'n_serie': n_serie,
             'resultat': result_str
+        }
+        
+        # Si OK, vérifier si on peut créer un carton reconditionné
+        if resultat_ok:
+            carton_cree = cls._creer_carton_reconditionne_auto(operateur, user)
+            if carton_cree:
+                result['carton_reconditionne'] = carton_cree
+        
+        return result
+
+    @classmethod
+    def _creer_carton_reconditionne_auto(cls, operateur: str, user: User) -> dict[str, Any] | None:
+        """
+        Crée automatiquement un carton reconditionné si 4 K du même opérateur
+        sont disponibles (en_attente_recond, Magasin, sans carton).
+        
+        Format numéro: KB71R000001 (K + lettre opérateur + 71 + R + compteur)
+        - B = Bouygues, O = Orange, S = SFR
+        - R = Reconditionné
+        
+        Returns:
+            Dict with carton info if created, None otherwise
+        """
+        # Vérifier s'il y a au moins 4 K disponibles en attente de reconditionnement
+        concentrateurs = list(Concentrateur.objects.filter(
+            operateur=operateur,
+            etat=Etat.EN_ATTENTE_RECONDITIONNEMENT,
+            affectation=Affectation.MAGASIN,
+            carton__isnull=True
+        ).select_for_update()[:4])
+        
+        if len(concentrateurs) < 4:
+            return None
+        
+        # Générer le numéro de carton
+        operateur_letter = {
+            'Bouygues': 'B',
+            'Orange': 'O',
+            'SFR': 'S'
+        }.get(operateur, 'X')
+        
+        # Trouver le prochain compteur pour les cartons reconditionnés
+        from django.db.models import Max
+        last_carton = Carton.objects.filter(
+            num_carton__startswith=f'K{operateur_letter}71R'
+        ).aggregate(Max('num_carton'))['num_carton__max']
+        
+        if last_carton:
+            # Extraire le compteur du dernier carton
+            try:
+                last_count = int(last_carton[-6:])
+                next_count = last_count + 1
+            except ValueError:
+                next_count = 1
+        else:
+            next_count = 1
+        
+        num_carton = f"K{operateur_letter}71R{next_count:06d}"
+        
+        # Créer le carton
+        carton = Carton.objects.create(
+            num_carton=num_carton,
+            operateur=operateur,
+            is_reconditionne=True
+        )
+        
+        # Assigner les 4 K au carton et passer en livraison
+        n_series = []
+        for k in concentrateurs:
+            ancien_etat = k.etat
+            k.carton = carton
+            k.etat = Etat.EN_LIVRAISON
+            k.save()
+            n_series.append(k.n_serie)
+            
+            cls._create_historique(
+                k, user, ActionType.RECONDITIONNEMENT,
+                ancien_etat=ancien_etat,
+                nouvel_etat=Etat.EN_LIVRAISON,
+                commentaire=f"Assigné au carton reconditionné {num_carton}"
+            )
+        
+        logger.info(f"Carton reconditionné créé: {num_carton} avec {len(n_series)} K par système")
+        
+        return {
+            'num_carton': num_carton,
+            'operateur': operateur,
+            'nb_concentrateurs': len(n_series),
+            'concentrateurs': n_series
         }
 
     # === HELPERS ===
