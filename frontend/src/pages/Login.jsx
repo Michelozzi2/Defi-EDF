@@ -29,7 +29,11 @@ export default function Login() {
         if (getCsrfCookie()) return true;
         try {
             await api.get('/auth/csrf/');
-            await new Promise(resolve => setTimeout(resolve, 50));
+            // Poll for cookie with retries - resolves race condition
+            for (let i = 0; i < 10; i++) {
+                await new Promise(resolve => setTimeout(resolve, 50));
+                if (getCsrfCookie()) return true;
+            }
             return !!getCsrfCookie();
         } catch (e) {
             return false;

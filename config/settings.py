@@ -143,6 +143,14 @@ CORS_ALLOW_CREDENTIALS = True
 
 CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173').split(',')
 
+# CSRF Cookie settings for SPA cross-origin requests
+CSRF_COOKIE_HTTPONLY = False  # Must be False so JS can read the token
+CSRF_COOKIE_SAMESITE = 'Lax'  # Allow cross-port requests on same host
+
+# Session Cookie settings
+SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_HTTPONLY = True
+
 # Login/Logout redirects
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
