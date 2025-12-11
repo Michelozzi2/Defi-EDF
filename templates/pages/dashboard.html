@@ -28,7 +28,7 @@
             <p class="text-2xl font-bold text-red-600" x-text="stats.by_etat?.HS || 0"></p>
         </div>
     </div>
-    
+
     <!-- Charts -->
     <div class="grid lg:grid-cols-2 gap-6 mb-8">
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
@@ -40,28 +40,27 @@
             <canvas id="chartAffectation" class="w-full" height="250"></canvas>
         </div>
     </div>
-    
+
     <!-- Search/list -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
         <div class="flex flex-col sm:flex-row gap-4 mb-6">
             <div class="flex-1">
-                <input type="text" 
-                       x-model="searchQuery"
-                       @keyup.enter="searchConcentrateurs()"
-                       placeholder="Rechercher par N° série..."
-                       class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-edf-blue focus:border-transparent">
+                <input type="text" x-model="searchQuery" @keyup.enter="searchConcentrateurs()"
+                    placeholder="Rechercher par N° série..."
+                    class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-edf-blue focus:border-transparent">
             </div>
             <select x-model="filterEtat" @change="searchConcentrateurs()"
-                    class="px-4 py-2.5 border border-slate-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-edf-blue">
+                class="px-4 py-2.5 border border-slate-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-edf-blue">
                 <option value="">Tous états</option>
                 <option value="en_livraison">En livraison</option>
                 <option value="en_stock">En stock</option>
                 <option value="pose">Posé</option>
                 <option value="a_tester">À tester</option>
+                <option value="en_attente_recond">En attente recond.</option>
                 <option value="HS">HS</option>
             </select>
             <select x-model="filterAffectation" @change="searchConcentrateurs()"
-                    class="px-4 py-2.5 border border-slate-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-edf-blue">
+                class="px-4 py-2.5 border border-slate-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-edf-blue">
                 <option value="">Toutes affectations</option>
                 <option value="Magasin">Magasin</option>
                 <option value="BO Nord">BO Nord</option>
@@ -69,12 +68,12 @@
                 <option value="BO Sud">BO Sud</option>
                 <option value="Labo">Labo</option>
             </select>
-            <button @click="searchConcentrateurs()" 
-                    class="px-6 py-2.5 bg-edf-blue hover:bg-edf-blue-light text-white rounded-xl transition-colors">
+            <button @click="searchConcentrateurs()"
+                class="px-6 py-2.5 bg-edf-blue hover:bg-edf-blue-light text-white rounded-xl transition-colors">
                 Filtrer
             </button>
         </div>
-        
+
         <!-- Table -->
         <div class="overflow-x-auto">
             <table class="w-full">
@@ -94,14 +93,13 @@
                             <td class="py-3 px-2 font-mono font-medium text-slate-800" x-text="k.n_serie"></td>
                             <td class="py-3 px-2 text-slate-600" x-text="k.carton_num || '-'"></td>
                             <td class="py-3 px-2">
-                                <span class="px-2 py-1 text-xs font-medium rounded-full"
-                                      :class="{
+                                <span class="px-2 py-1 text-xs font-medium rounded-full" :class="{
                                           'bg-emerald-100 text-emerald-700': k.etat === 'en_stock',
                                           'bg-blue-100 text-blue-700': k.etat === 'pose',
                                           'bg-amber-100 text-amber-700': k.etat === 'en_livraison' || k.etat === 'a_tester',
+                                          'bg-purple-100 text-purple-700': k.etat === 'en_attente_recond',
                                           'bg-red-100 text-red-700': k.etat === 'HS'
-                                      }"
-                                      x-text="k.etat_display"></span>
+                                      }" x-text="k.etat_display"></span>
                             </td>
                             <td class="py-3 px-2 text-slate-600" x-text="k.affectation || '-'"></td>
                             <td class="py-3 px-2 text-slate-500 text-sm" x-text="k.date_dernier_etat"></td>
@@ -117,90 +115,90 @@
 </div>
 
 <script>
-function dashboard() {
-    return {
-        stats: {},
-        concentrateurs: [],
-        searchQuery: '',
-        filterEtat: '',
-        filterAffectation: '',
-        chartEtat: null,
-        chartAffectation: null,
-        
-        async loadStats() {
-            try {
-                const response = await fetch('/api/v1/dashboard/stocks/');
-                this.stats = await response.json();
-                this.renderCharts();
-                this.searchConcentrateurs();
-            } catch (e) {
-                console.error('Failed to load stats', e);
-            }
-        },
-        
-        renderCharts() {
-            // État chart
-            const ctxEtat = document.getElementById('chartEtat').getContext('2d');
-            if (this.chartEtat) this.chartEtat.destroy();
-            this.chartEtat = new Chart(ctxEtat, {
-                type: 'doughnut',
-                data: {
-                    labels: ['En stock', 'Posé', 'En livraison', 'À tester', 'HS'],
-                    datasets: [{
-                        data: [
-                            this.stats.by_etat?.en_stock || 0,
-                            this.stats.by_etat?.pose || 0,
-                            this.stats.by_etat?.en_livraison || 0,
-                            this.stats.by_etat?.a_tester || 0,
-                            this.stats.by_etat?.HS || 0
-                        ],
-                        backgroundColor: ['#10b981', '#004A99', '#f59e0b', '#f97316', '#ef4444']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: { legend: { position: 'bottom' } }
+    function dashboard() {
+        return {
+            stats: {},
+            concentrateurs: [],
+            searchQuery: '',
+            filterEtat: '',
+            filterAffectation: '',
+            chartEtat: null,
+            chartAffectation: null,
+
+            async loadStats() {
+                try {
+                    const response = await fetch('/api/v1/dashboard/stocks/');
+                    this.stats = await response.json();
+                    this.renderCharts();
+                    this.searchConcentrateurs();
+                } catch (e) {
+                    console.error('Failed to load stats', e);
                 }
-            });
-            
-            // Affectation chart
-            const ctxAff = document.getElementById('chartAffectation').getContext('2d');
-            if (this.chartAffectation) this.chartAffectation.destroy();
-            this.chartAffectation = new Chart(ctxAff, {
-                type: 'bar',
-                data: {
-                    labels: Object.keys(this.stats.by_affectation || {}),
-                    datasets: [{
-                        label: 'Concentrateurs',
-                        data: Object.values(this.stats.by_affectation || {}),
-                        backgroundColor: '#004A99'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: true } }
+            },
+
+            renderCharts() {
+                // État chart
+                const ctxEtat = document.getElementById('chartEtat').getContext('2d');
+                if (this.chartEtat) this.chartEtat.destroy();
+                this.chartEtat = new Chart(ctxEtat, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['En stock', 'Posé', 'En livraison', 'À tester', 'HS'],
+                        datasets: [{
+                            data: [
+                                this.stats.by_etat?.en_stock || 0,
+                                this.stats.by_etat?.pose || 0,
+                                this.stats.by_etat?.en_livraison || 0,
+                                this.stats.by_etat?.a_tester || 0,
+                                this.stats.by_etat?.HS || 0
+                            ],
+                            backgroundColor: ['#10b981', '#004A99', '#f59e0b', '#f97316', '#ef4444']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { position: 'bottom' } }
+                    }
+                });
+
+                // Affectation chart
+                const ctxAff = document.getElementById('chartAffectation').getContext('2d');
+                if (this.chartAffectation) this.chartAffectation.destroy();
+                this.chartAffectation = new Chart(ctxAff, {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(this.stats.by_affectation || {}),
+                        datasets: [{
+                            label: 'Concentrateurs',
+                            data: Object.values(this.stats.by_affectation || {}),
+                            backgroundColor: '#004A99'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true } }
+                    }
+                });
+            },
+
+            async searchConcentrateurs() {
+                let url = '/api/v1/concentrateurs/?';
+                const params = new URLSearchParams();
+
+                if (this.searchQuery) params.append('search', this.searchQuery);
+                if (this.filterEtat) params.append('etat', this.filterEtat);
+                if (this.filterAffectation) params.append('affectation', this.filterAffectation);
+
+                try {
+                    const response = await fetch(url + params.toString());
+                    const data = await response.json();
+                    this.concentrateurs = data.results || [];
+                } catch (e) {
+                    console.error('Search failed', e);
                 }
-            });
-        },
-        
-        async searchConcentrateurs() {
-            let url = '/api/v1/concentrateurs/?';
-            const params = new URLSearchParams();
-            
-            if (this.searchQuery) params.append('search', this.searchQuery);
-            if (this.filterEtat) params.append('etat', this.filterEtat);
-            if (this.filterAffectation) params.append('affectation', this.filterAffectation);
-            
-            try {
-                const response = await fetch(url + params.toString());
-                const data = await response.json();
-                this.concentrateurs = data.results || [];
-            } catch (e) {
-                console.error('Search failed', e);
             }
         }
     }
-}
 </script>
 {% endblock %}

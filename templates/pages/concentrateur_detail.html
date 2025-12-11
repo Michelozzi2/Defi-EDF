@@ -12,12 +12,13 @@
             <span class="px-3 py-1 text-sm font-medium rounded-full
                 {% if concentrateur.etat == 'en_stock' %}bg-emerald-100 text-emerald-700
                 {% elif concentrateur.etat == 'pose' %}bg-blue-100 text-blue-700
+                {% elif concentrateur.etat == 'en_attente_recond' %}bg-purple-100 text-purple-700
                 {% elif concentrateur.etat == 'HS' %}bg-red-100 text-red-700
                 {% else %}bg-amber-100 text-amber-700{% endif %}">
                 {{ concentrateur.get_etat_display }}
             </span>
         </div>
-        
+
         <div class="grid sm:grid-cols-2 gap-4">
             <div class="p-3 bg-slate-50 rounded-xl">
                 <p class="text-sm text-slate-500">Opérateur</p>
@@ -37,15 +38,15 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Historique -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
         <h3 class="text-lg font-semibold text-slate-800 mb-6">Historique</h3>
-        
+
         <div class="relative">
             <!-- Timeline line -->
             <div class="absolute left-3 top-3 bottom-3 w-0.5 bg-slate-200"></div>
-            
+
             <!-- Timeline items -->
             <div class="space-y-6">
                 {% for h in historique %}
@@ -85,11 +86,11 @@
             </div>
         </div>
     </div>
-    
+
     <div class="mt-6">
         <a href="{% url 'dashboard:search' %}" class="text-edf-blue hover:underline flex items-center gap-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
             Retour à la recherche
         </a>

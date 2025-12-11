@@ -332,7 +332,7 @@ class ConcentrateurService:
         operateur = k.operateur
         
         if resultat_ok:
-            k.etat = Etat.EN_STOCK
+            k.etat = Etat.EN_ATTENTE_RECONDITIONNEMENT
             k.affectation = Affectation.MAGASIN
             k.carton = None  # Détacher du carton d'origine
             action = ActionType.TEST_OK
@@ -371,7 +371,7 @@ class ConcentrateurService:
     def _creer_carton_reconditionne_auto(cls, operateur: str, user: User) -> dict[str, Any] | None:
         """
         Crée automatiquement un carton reconditionné si 4 K du même opérateur
-        sont disponibles (en_stock, Magasin, sans carton).
+        sont disponibles (en_attente_recond, Magasin, sans carton).
         
         Format numéro: KB71R000001 (K + lettre opérateur + 71 + R + compteur)
         - B = Bouygues, O = Orange, S = SFR
@@ -380,10 +380,10 @@ class ConcentrateurService:
         Returns:
             Dict with carton info if created, None otherwise
         """
-        # Vérifier s'il y a au moins 4 K disponibles
+        # Vérifier s'il y a au moins 4 K disponibles en attente de reconditionnement
         concentrateurs = list(Concentrateur.objects.filter(
             operateur=operateur,
-            etat=Etat.EN_STOCK,
+            etat=Etat.EN_ATTENTE_RECONDITIONNEMENT,
             affectation=Affectation.MAGASIN,
             carton__isnull=True
         ).select_for_update()[:4])
