@@ -15,6 +15,14 @@ export default function Reception() {
     const [incomingCartons, setIncomingCartons] = useState([]);
     const [loadingCartons, setLoadingCartons] = useState(true);
 
+    // Search filter for cartons list
+    const [cartonSearch, setCartonSearch] = useState('');
+
+    // Filtered cartons based on search
+    const filteredCartons = incomingCartons.filter(carton =>
+        carton.num_carton.toLowerCase().includes(cartonSearch.toLowerCase())
+    );
+
     useEffect(() => {
         fetchIncomingCartons();
     }, []);
@@ -72,19 +80,32 @@ export default function Reception() {
 
                     {/* Incoming List - Left/Top - Takes space */}
                     <div className="flex-1 bg-white dark:bg-[#16202A] rounded-3xl shadow-lg border border-gray-100 dark:border-gray-800 flex flex-col min-h-0">
-                        <div className="p-4 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50/50 dark:bg-[#0F1720]/50 rounded-t-3xl">
-                            <h3 className="font-bold text-gray-700 dark:text-gray-200 flex items-center gap-2">
-                                <Truck size={20} className="text-[#509E2F]" />
-                                En Livraison / Arrivages
-                            </h3>
-                            <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-full font-mono">
-                                {incomingCartons.length} en attente
-                            </span>
+                        <div className="p-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-[#0F1720]/50 rounded-t-3xl space-y-3">
+                            <div className="flex justify-between items-center">
+                                <h3 className="font-bold text-gray-700 dark:text-gray-200 flex items-center gap-2">
+                                    <Truck size={20} className="text-[#509E2F]" />
+                                    En Livraison / Arrivages
+                                </h3>
+                                <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-full font-mono">
+                                    {filteredCartons.length} en attente
+                                </span>
+                            </div>
+                            {/* Search Input for Cartons */}
+                            <div className="relative">
+                                <Scan className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                <input
+                                    type="text"
+                                    value={cartonSearch}
+                                    onChange={(e) => setCartonSearch(e.target.value)}
+                                    placeholder="Rechercher un carton..."
+                                    className="w-full bg-white dark:bg-[#0F1720] border border-gray-200 dark:border-gray-700 rounded-xl py-2 pl-10 pr-4 text-sm font-mono text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#FE5815] focus:border-transparent transition-all placeholder-gray-400"
+                                />
+                            </div>
                         </div>
 
                         <div className="flex-1 overflow-y-auto p-2 space-y-2">
                             <AnimatePresence>
-                                {incomingCartons.map((carton) => (
+                                {filteredCartons.map((carton) => (
                                     <motion.div
                                         key={carton.id || carton.num_carton}
                                         initial={{ opacity: 0, x: -20 }}
@@ -110,7 +131,7 @@ export default function Reception() {
                                     </motion.div>
                                 ))}
                             </AnimatePresence>
-                            {incomingCartons.length === 0 && (
+                            {filteredCartons.length === 0 && (
                                 <div className="text-center py-10 text-gray-400 italic">
                                     Aucun carton en livraison.
                                 </div>

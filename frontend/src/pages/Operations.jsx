@@ -109,6 +109,14 @@ export default function Operations() {
     const [postes, setPostes] = useState([]); // List of available postes
     const [user, setUser] = useState(null);
 
+    // Search State for Stock
+    const [stockSearch, setStockSearch] = useState('');
+
+    // Filtered stock based on search
+    const filteredStock = stock.filter(item =>
+        item.n_serie.toLowerCase().includes(stockSearch.toLowerCase())
+    );
+
     // UI State
     const [loading, setLoading] = useState(false);
     const [loadingStock, setLoadingStock] = useState(false);
@@ -250,8 +258,20 @@ export default function Operations() {
                                 </button>
                             </div>
 
+                            {/* Search Input for Stock */}
+                            <div className="relative mb-4">
+                                <CircuitBoard className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                <input
+                                    type="text"
+                                    value={stockSearch}
+                                    onChange={(e) => setStockSearch(e.target.value)}
+                                    placeholder="Rechercher un N° série..."
+                                    className="w-full bg-gray-50 dark:bg-[#0F1720] border border-gray-200 dark:border-gray-700 rounded-xl py-2 pl-10 pr-4 text-sm font-mono text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#001A70] focus:border-transparent transition-all placeholder-gray-400"
+                                />
+                            </div>
+
                             <div className="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
-                                {stock.map(item => (
+                                {filteredStock.map(item => (
                                     <motion.div
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
@@ -276,7 +296,7 @@ export default function Operations() {
                     )}
 
                     {/* Operation Form */}
-                    <div className="lg:col-span-2 bg-white dark:bg-[#16202A] rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 relative overflow-hidden flex flex-col">
+                    <div className="lg:col-span-2 bg-white dark:bg-[#16202A] rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 relative overflow-visible flex flex-col">
                         {/* Tabs (Pose/Depose) */}
                         <div className="flex border-b border-gray-100 dark:border-gray-800">
                             {/* ... Tabs (same as before) ... */}

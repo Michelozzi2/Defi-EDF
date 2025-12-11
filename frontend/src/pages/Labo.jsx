@@ -14,10 +14,18 @@ export default function Labo() {
     const [selectedNSerie, setSelectedNSerie] = useState('');
     const [resultatOk, setResultatOk] = useState(true);
 
+    // Search State
+    const [searchQuery, setSearchQuery] = useState('');
+
     // UI State
     const [submitting, setSubmitting] = useState(false);
     const [status, setStatus] = useState(null);
     const [message, setMessage] = useState('');
+
+    // Filtered tests based on search
+    const filteredTests = tests.filter(item =>
+        item.n_serie.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
     useEffect(() => {
         fetchTests();
@@ -43,6 +51,15 @@ export default function Labo() {
         setStatus(null);
     };
 
+    // Handle direct input of n_serie (when user types and presses Enter)
+    const handleSearchSubmit = (e) => {
+        e.preventDefault();
+        if (searchQuery.trim()) {
+            setSelectedNSerie(searchQuery.trim());
+            setStatus(null);
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!selectedNSerie) return;
@@ -58,6 +75,7 @@ export default function Labo() {
             setStatus('success');
             setMessage(`Test enregistré pour ${selectedNSerie} : ${resultatOk ? 'FONCTIONNEL' : 'HORS SERVICE'}`);
             setSelectedNSerie('');
+            setSearchQuery('');
             fetchTests(); // Refresh list
         } catch (err) {
             console.error(err);
@@ -82,7 +100,7 @@ export default function Labo() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* List of To-Test */}
                     <div className="bg-white dark:bg-[#16202A] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-6 flex flex-col h-[600px]">
-                        <div className="flex items-center justify-between mb-6 border-b border-gray-100 dark:border-gray-700 pb-4">
+                        <div className="flex items-center justify-between mb-4 border-b border-gray-100 dark:border-gray-700 pb-4">
                             <h2 className="text-xl font-bold text-[#001A70] dark:text-white flex items-center gap-2">
                                 <Gauge size={20} className="text-[#FE5815]" />
                                 File d'attente (À Tester)
@@ -92,11 +110,28 @@ export default function Labo() {
                             </button>
                         </div>
 
+                        {/* Search Input for Concentrators */}
+                        <form onSubmit={handleSearchSubmit} className="mb-4">
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                <input
+                                    type="text"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    placeholder="Rechercher ou entrer un N° série..."
+                                    className="w-full bg-gray-50 dark:bg-[#0F1720] border border-gray-200 dark:border-gray-700 rounded-xl py-3 pl-10 pr-4 text-sm font-mono text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#509E2F] focus:border-transparent transition-all placeholder-gray-400"
+                                />
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
+                                    Entrée = sélectionner
+                                </span>
+                            </div>
+                        </form>
+
                         <div className="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
                             {loadingTests ? (
                                 <div className="text-center py-10 text-gray-400">Chargement...</div>
-                            ) : tests.length > 0 ? (
-                                tests.map((item) => (
+                            ) : filteredTests.length > 0 ? (
+                                filteredTests.map((item) => (
                                     <motion.div
                                         layout
                                         initial={{ opacity: 0 }}
@@ -113,6 +148,9 @@ export default function Labo() {
                                         <div>
                                             <p className="font-mono font-bold text-[#001A70] dark:text-blue-300 text-lg">{item.n_serie}</p>
                                             <div className="flex items-center gap-2 mt-1">
+                                                <span className="text-xs font-semibold px-2 py-0.5 rounded bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                                                    {item.operateur || 'Opérateur inconnu'}
+                                                </span>
                                                 <span className="text-xs font-semibold px-2 py-0.5 rounded bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300">
                                                     {item.affectation || 'Inconnu'}
                                                 </span>
@@ -124,8 +162,8 @@ export default function Labo() {
                             ) : (
                                 <div className="text-center py-12 text-gray-400 flex flex-col items-center">
                                     <ClipboardCheck size={48} className="mb-4 opacity-20" />
-                                    <p>File d'attente vide.</p>
-                                    <p className="text-sm">Aucun concentrateur à tester pour le moment.</p>
+                                    <p>{searchQuery ? 'Aucun résultat trouvé.' : 'File d\'attente vide.'}</p>
+                                    <p className="text-sm">{searchQuery ? 'Essayez un autre numéro ou appuyez sur Entrée.' : 'Aucun concentrateur à tester pour le moment.'}</p>
                                 </div>
                             )}
                         </div>
