@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import { Package, X, Clock, RefreshCcw, ArrowDownRight } from 'lucide-react';
 import clsx from 'clsx';
@@ -6,8 +7,8 @@ import clsx from 'clsx';
 export default function DetailModal({ selectedItem, onClose, history, loadingHistory }) {
     if (!selectedItem) return null;
 
-    return (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+    return createPortal(
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
             {/* Backdrop with Blur */}
             <motion.div
                 initial={{ opacity: 0 }}
@@ -66,7 +67,7 @@ export default function DetailModal({ selectedItem, onClose, history, loadingHis
                         </div>
                         <div className="p-4 bg-gray-50 dark:bg-[#0F1720] rounded-xl">
                             <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">Carton</span>
-                            <span className="font-mono text-gray-900 dark:text-white">{selectedItem.carton || '-'}</span>
+                            <span className="font-mono text-gray-900 dark:text-white">{selectedItem.carton?.num_carton || '-'}</span>
                         </div>
                     </div>
 
@@ -167,6 +168,7 @@ export default function DetailModal({ selectedItem, onClose, history, loadingHis
                     </button>
                 </div>
             </motion.div>
-        </div>
+        </div>,
+        document.body
     );
 }

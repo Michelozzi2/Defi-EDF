@@ -10,6 +10,8 @@ import StatCard from '../components/dashboard/StatCard';
 import InventoryCharts from '../components/dashboard/InventoryCharts';
 import InventoryTable from '../components/dashboard/InventoryTable';
 import DetailModal from '../components/dashboard/DetailModal';
+import ActivityFeed from '../components/dashboard/ActivityFeed';
+import DashboardAlerts from '../components/dashboard/DashboardAlerts';
 
 export default function Dashboard() {
     const [stats, setStats] = useState(null);
@@ -43,8 +45,16 @@ export default function Dashboard() {
     }, [search, filterEtat, filterAffectation]);
 
     // Effect for fetching history when item is selected
+    // Effect for fetching history and details when item is selected
     useEffect(() => {
         if (selectedItem) {
+            // If the item comes from ActivityFeed, it might only have n_serie. Fetch full details.
+            if (!selectedItem.etat && !selectedItem.fetching) {
+                api.get(`/concentrateurs/${selectedItem.n_serie}/`)
+                    .then(res => setSelectedItem({ ...res.data, fetching: false }))
+                    .catch(err => console.error("Error fetching details", err));
+            }
+
             fetchHistory(selectedItem.n_serie);
         } else {
             setHistory([]);
@@ -138,6 +148,9 @@ export default function Dashboard() {
                 </button>
             </header>
 
+            {/* Alerts Section (Optional) */}
+            <DashboardAlerts alerts={stats?.alerts} />
+
             {/* KPI Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatCard title="Total Concentrateurs" value={total} icon={BarChart3} colorClass="bg-blue-600" delay={0.1} />
@@ -146,24 +159,36 @@ export default function Dashboard() {
                 <StatCard title="À Tester" value={aTester} icon={AlertTriangle} colorClass="bg-red-500" delay={0.4} />
             </div>
 
-            {/* Charts Section */}
-            <InventoryCharts stats={stats} />
+            {/* Main Content Grid: Charts + Activity */}
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                {/* Charts Section - Takes 2/3 width on large screens */}
+                <div className="xl:col-span-2">
+                    <InventoryCharts stats={stats} />
+                </div>
+
+                {/* Activity Feed - Takes 1/3 width */}
+                <div className="h-[950px]"> {/* Match height of charts roughly */}
+                    <ActivityFeed activity={stats?.recent_activity} onSelect={setSelectedItem} />
+                </div>
+            </div>
 
             {/* Isolated Search Module - Takes remaining space */}
-            <InventoryTable
-                results={results}
-                searching={searching}
-                onSelect={setSelectedItem}
-                search={search}
-                setSearch={setSearch}
-                filterEtat={filterEtat}
-                setFilterEtat={setFilterEtat}
-                filterAffectation={filterAffectation}
-                setFilterAffectation={setFilterAffectation}
-                totalCount={totalCount}
-                onLoadMore={handleLoadMore}
-                hasMore={hasMore}
-            />
+            <div className="mt-8">
+                <InventoryTable
+                    results={results}
+                    searching={searching}
+                    onSelect={setSelectedItem}
+                    search={search}
+                    setSearch={setSearch}
+                    filterEtat={filterEtat}
+                    setFilterEtat={setFilterEtat}
+                    filterAffectation={filterAffectation}
+                    setFilterAffectation={setFilterAffectation}
+                    totalCount={totalCount}
+                    onLoadMore={handleLoadMore}
+                    hasMore={hasMore}
+                />
+            </div>
 
             {/* Details Modal */}
             <AnimatePresence>
