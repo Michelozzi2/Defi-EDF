@@ -35,7 +35,7 @@ export default function ActivityFeed({ activity, onSelect }) {
     }
 
     return (
-        <div className="bg-white dark:bg-[#16202A] p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 h-full overflow-hidden flex flex-col">
+        <div className="bg-white dark:bg-[#16202A] p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 h-full overflow-hidden flex flex-col flex-1 min-h-0">
             <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-6">Activité Récente</h3>
 
             <style>{`

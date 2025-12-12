@@ -12,6 +12,8 @@ import InventoryTable from '../components/dashboard/InventoryTable';
 import DetailModal from '../components/dashboard/DetailModal';
 import ActivityFeed from '../components/dashboard/ActivityFeed';
 import DashboardAlerts from '../components/dashboard/DashboardAlerts';
+import CoverageMap from '../components/dashboard/CoverageMap';
+import PerformanceCharts from '../components/dashboard/PerformanceCharts';
 
 export default function Dashboard() {
     const [stats, setStats] = useState(null);
@@ -59,7 +61,7 @@ export default function Dashboard() {
         } else {
             setHistory([]);
         }
-    }, [selectedItem]);
+    }, [selectedItem?.n_serie]);
 
     const fetchStats = async () => {
         try {
@@ -161,13 +163,17 @@ export default function Dashboard() {
 
             {/* Main Content Grid: Charts + Activity */}
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                {/* Charts Section - Takes 2/3 width on large screens */}
-                <div className="xl:col-span-2">
+                {/* Row 1: Key Charts & Map */}
+                <div className="xl:col-span-2 space-y-6">
                     <InventoryCharts stats={stats} />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-[400px]">
+                        <CoverageMap stats={stats} onSelect={setSelectedItem} />
+                        <PerformanceCharts kpis={stats?.kpis} />
+                    </div>
                 </div>
 
-                {/* Activity Feed - Takes 1/3 width */}
-                <div className="h-[950px]"> {/* Match height of charts roughly */}
+                {/* Activity Feed - Takes 1/3 width, aligns with left column */}
+                <div className="h-full flex flex-col">
                     <ActivityFeed activity={stats?.recent_activity} onSelect={setSelectedItem} />
                 </div>
             </div>

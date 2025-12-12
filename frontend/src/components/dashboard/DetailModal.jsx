@@ -129,11 +129,11 @@ export default function DetailModal({ selectedItem, onClose, history, loadingHis
                                                 )}
                                             </div>
 
-                                            {/* Bottom Right Affectation */}
-                                            {h.nouvelle_affectation && (
+                                            {/* Bottom Right Affectation or Poste */}
+                                            {(h.nouvelle_affectation || h.poste) && (
                                                 <div className="absolute bottom-4 right-4 bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-full border border-blue-100 dark:border-blue-800/50">
                                                     <span className="text-xs font-bold text-edf-blue dark:text-blue-300 uppercase tracking-wide">
-                                                        {h.nouvelle_affectation}
+                                                        {h.poste || h.nouvelle_affectation}
                                                     </span>
                                                 </div>
                                             )}

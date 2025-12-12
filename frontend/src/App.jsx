@@ -6,6 +6,7 @@ import Commande from './pages/Commande';
 import Operations from './pages/Operations';
 import WorkspaceSelector from './pages/WorkspaceSelector';
 import Labo from './pages/Labo';
+import MapPage from './pages/MapPage';
 import Layout from './components/Layout';
 import { ThemeProvider } from './context/ThemeContext';
 import { UserProvider } from './context/UserContext';
@@ -35,6 +36,7 @@ function App() {
                 {/* Protected Routes */}
                 <Route element={<ProtectedRoute allowedRoles={['admin', 'magasin', 'bo', 'labo']} />}>
                   <Route path="/workspaces" element={<WorkspaceSelector />} />
+                  <Route path="/map" element={<MapPage />} />
 
                   {/* Routes with Sidebar Layout */}
                   <Route element={<AppLayout />}>
