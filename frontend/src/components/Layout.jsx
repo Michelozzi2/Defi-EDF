@@ -9,8 +9,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
 import api from '../services/api';
-
 import OfflineIndicator from './common/OfflineIndicator';
+import EDFLogo from '../assets/EDF_Logo.png';
 
 export default function Layout({ children }) {
     const location = useLocation();
@@ -70,10 +70,29 @@ export default function Layout({ children }) {
     const currentPage = navItems.find(item => location.pathname === item.path);
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-[#0F1720] text-gray-900 dark:text-gray-100 transition-colors">
+        <div className="min-h-screen bg-gray-50 dark:bg-[#0F1720] text-gray-900 dark:text-gray-100 transition-colors pt-16">
+            {/* Global Header */}
+            <header className="fixed top-0 left-0 right-0 h-16 bg-white/80 dark:bg-[#0F1720]/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 z-[80] flex items-center px-6 justify-between">
+                <div className="flex items-center gap-4">
+                    <img src={EDFLogo} alt="EDF Logo" className="h-12 w-auto" />
+                    <div className="h-8 w-px bg-gray-300 dark:bg-gray-700 hidden md:block"></div>
+                    <span className="font-bold text-lg text-[#001A70] dark:text-white hidden md:block">Inventaire SEI</span>
+                </div>
+
+                {/* User Profile Snippet (Optional but nice for header) */}
+                <div className="flex items-center gap-3">
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300 hidden sm:block">
+                        {user?.username || 'Utilisateur'}
+                    </span>
+                    <div className="w-8 h-8 rounded-full bg-[#FE5815] flex items-center justify-center text-white font-bold text-xs">
+                        {user?.username?.charAt(0).toUpperCase() || 'U'}
+                    </div>
+                </div>
+            </header>
+
             <OfflineIndicator />
             {/* Main Content - Full Width with scroll */}
-            <main className="min-h-screen pb-24">
+            <main className="min-h-[calc(100vh-4rem)] pb-24">
                 <div className="max-w-7xl mx-auto p-4 md:p-6 lg:p-8">
                     {children}
                 </div>

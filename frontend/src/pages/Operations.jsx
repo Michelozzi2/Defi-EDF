@@ -188,7 +188,7 @@ export default function Operations() {
             <div className={clsx("grid grid-cols-1 gap-8", activeTab === 'pose' ? "lg:grid-cols-3" : "lg:grid-cols-1 max-w-2xl mx-auto")}>
                 {/* Stock List Panel - Only in Pose Mode */}
                 {activeTab === 'pose' && (
-                    <div className="lg:col-span-1 bg-white dark:bg-[#16202A] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-6 flex flex-col h-[450px] lg:h-[600px] order-2 lg:order-1">
+                    <div className="lg:col-span-1 bg-white dark:bg-[#16202A] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-6 flex flex-col h-[400px] lg:h-[500px] order-2 lg:order-1">
                         <div className="flex items-center justify-between mb-4 border-b border-gray-100 dark:border-gray-700 pb-3">
                             <h3 className="font-bold text-[#001A70] dark:text-white flex items-center gap-2">
                                 <CircuitBoard size={20} className="text-[#509E2F]" />

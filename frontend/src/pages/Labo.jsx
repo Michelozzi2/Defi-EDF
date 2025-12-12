@@ -129,7 +129,7 @@ export default function Labo() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* List of To-Test */}
-                <div className="bg-white dark:bg-[#16202A] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-6 flex flex-col h-[500px] lg:h-[600px]">
+                <div className="bg-white dark:bg-[#16202A] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-6 flex flex-col h-[400px] lg:h-[500px]">
                     <div className="flex items-center justify-between mb-4 border-b border-gray-100 dark:border-gray-700 pb-4">
                         <h2 className="text-xl font-bold text-[#001A70] dark:text-white flex items-center gap-2">
                             <Gauge size={20} className="text-[#FE5815]" />

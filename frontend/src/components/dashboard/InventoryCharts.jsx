@@ -29,7 +29,7 @@ export default function InventoryCharts({ stats }) {
     return (
         <div className="flex flex-col gap-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-white dark:bg-[#16202A] p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 h-[500px] flex flex-col">
+                <div className="bg-white dark:bg-[#16202A] p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 h-[350px] flex flex-col">
                     <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-4">Répartition par État</h3>
                     <div className="flex-1 min-h-0 w-full">
                         <ResponsiveContainer width="100%" height="100%">
@@ -66,7 +66,7 @@ export default function InventoryCharts({ stats }) {
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-[#16202A] p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 h-[500px] flex flex-col">
+                <div className="bg-white dark:bg-[#16202A] p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 h-[350px] flex flex-col">
                     <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-4">Répartition par Affectation</h3>
                     <div className="flex-1 min-h-0 w-full">
                         <ResponsiveContainer width="100%" height="100%">

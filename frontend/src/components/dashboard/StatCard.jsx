@@ -14,7 +14,7 @@ export default function StatCard({ title, value, icon: Icon, colorClass, delay }
                 <div className={clsx("p-3 rounded-xl bg-opacity-10", colorClass)}>
                     <Icon size={24} className={colorClass.replace('bg-', 'text-')} />
                 </div>
-                <span className="text-4xl font-bold text-gray-900 dark:text-white">{value}</span>
+                <span className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white truncate" title={value}>{value}</span>
             </div>
             <h3 className="text-gray-500 dark:text-gray-400 font-medium">{title}</h3>
         </motion.div>

@@ -6,6 +6,8 @@ import api from '../services/api';
 import { useUser } from '../context/UserContext';
 import clsx from 'clsx';
 
+import EDFLogo from '../assets/EDF_Logo.png';
+
 export default function Login() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -104,10 +106,10 @@ export default function Login() {
                             transition={{ duration: 0.8 }}
                             className="flex items-center gap-3 mb-12"
                         >
-                            <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-md border border-white/10">
-                                <Zap className="text-[#FE5815] fill-[#FE5815]" size={28} />
+                            {/* Desktop Brand Logo */}
+                            <div className="p-4 bg-white/90 rounded-2xl shadow-xl backdrop-blur-sm">
+                                <img src={EDFLogo} alt="EDF Logo" className="h-16 w-auto" />
                             </div>
-                            <span className="text-2xl font-bold tracking-widest uppercase bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">EDF Inventaire</span>
                         </motion.div>
 
                         <motion.h2
@@ -116,8 +118,8 @@ export default function Login() {
                             transition={{ duration: 0.8, delay: 0.2 }}
                             className="text-5xl font-bold leading-tight mb-6"
                         >
-                            Alimenter <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FE5815] to-[#FF8C00]">le Réseau de Demain</span>
+                            Inventaire & <br />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FE5815] to-[#FF8C00]">Supervision CPL</span>
                         </motion.h2>
 
                         <motion.p
@@ -126,26 +128,28 @@ export default function Login() {
                             transition={{ duration: 0.8, delay: 0.4 }}
                             className="text-lg text-gray-400 max-w-md leading-relaxed"
                         >
-                            Gestion nouvelle génération du cycle de vie des concentrateurs CPL. Opérations sécurisées, efficaces et fiables.
+                            Plateforme unifiée pour la gestion du cycle de vie des concentrateurs CPL. Performance, traçabilité et efficacité pour les équipes SEI.
                         </motion.p>
                     </div>
 
                     <div className="z-10 flex items-center gap-4 text-sm text-gray-500 mt-12">
+                        {/* Decorative Circles Restored */}
                         <div className="flex -space-x-3">
-                            <div className="w-8 h-8 rounded-full bg-blue-500 border-2 border-[#001A70]"></div>
-                            <div className="w-8 h-8 rounded-full bg-orange-500 border-2 border-[#001A70]"></div>
-                            <div className="w-8 h-8 rounded-full bg-green-500 border-2 border-[#001A70]"></div>
+                            <div className="w-8 h-8 rounded-full bg-[#001A70] border-2 border-[#0F1720]"></div>
+                            <div className="w-8 h-8 rounded-full bg-[#FE5815] border-2 border-[#0F1720]"></div>
+                            <div className="w-8 h-8 rounded-full bg-white border-2 border-[#0F1720]"></div>
                         </div>
-                        <span>Utilisé par les équipes EDF SEI</span>
+                        <span>Direction des Systèmes Énergétiques Insulaires</span>
                     </div>
                 </div>
 
                 {/* Right: Login Form */}
                 <div className="p-10 lg:p-20 flex flex-col justify-center h-full bg-[#0F1720]/50 relative">
                     {/* Mobile Logo */}
-                    <div className="lg:hidden flex items-center gap-2 mb-10 justify-center">
-                        <Zap className="text-[#FE5815] fill-[#FE5815]" size={32} />
-                        <span className="text-2xl font-bold text-white">EDF Inventaire</span>
+                    <div className="lg:hidden flex justify-center mb-10">
+                        <div className="p-4 bg-white/90 rounded-2xl shadow-xl">
+                            <img src={EDFLogo} alt="EDF Logo" className="h-12 w-auto" />
+                        </div>
                     </div>
 
                     <div className="max-w-md mx-auto w-full">

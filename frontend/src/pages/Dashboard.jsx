@@ -154,7 +154,7 @@ export default function Dashboard() {
             <DashboardAlerts alerts={stats?.alerts} />
 
             {/* KPI Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                 <StatCard title="Total Concentrateurs" value={total} icon={BarChart3} colorClass="bg-blue-600" delay={0.1} />
                 <StatCard title="En Stock" value={enStock} icon={Package} colorClass="bg-edf-green" delay={0.2} />
                 <StatCard title="En Livraison" value={enLivraison} icon={Truck} colorClass="bg-edf-orange" delay={0.3} />

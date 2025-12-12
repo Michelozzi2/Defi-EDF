@@ -82,7 +82,7 @@ export default function Reception() {
     };
 
     return (
-        <div className="h-[calc(100dvh-6rem)] max-w-7xl mx-auto p-4 flex flex-col gap-6 overflow-hidden">
+        <div className="h-[calc(100vh-10rem)] max-w-7xl mx-auto p-4 flex flex-col gap-6 overflow-hidden">
             {/* Header - Compact */}
             <div className="shrink-0 flex items-center gap-4 mb-2">
                 <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-100 dark:bg-blue-900/30 text-[#001A70] dark:text-blue-300 rounded-xl">
