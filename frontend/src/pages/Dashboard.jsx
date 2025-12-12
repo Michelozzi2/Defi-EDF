@@ -166,7 +166,7 @@ export default function Dashboard() {
                 {/* Row 1: Key Charts & Map */}
                 <div className="xl:col-span-2 space-y-6">
                     <InventoryCharts stats={stats} />
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-[400px]">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 min-h-[400px] h-auto md:h-[400px]">
                         <CoverageMap stats={stats} onSelect={setSelectedItem} />
                         <PerformanceCharts kpis={stats?.kpis} />
                     </div>

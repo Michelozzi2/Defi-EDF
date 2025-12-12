@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Layout from '../components/Layout';
 import api from '../services/api';
 import { useOffline } from '../context/OfflineContext';
@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import QRScanner from '../components/common/QRScanner';
 
 export default function Labo() {
+    const formRef = useRef(null);
     // Data State
     const [tests, setTests] = useState([]);
     const [loadingTests, setLoadingTests] = useState(false);
@@ -51,7 +52,14 @@ export default function Labo() {
 
     const handleSelect = (nSerie) => {
         setSelectedNSerie(nSerie);
+
         setStatus(null);
+        // Auto-scroll to form on mobile
+        if (window.innerWidth < 1024) {
+            setTimeout(() => {
+                formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
     };
 
     // Handle direct input of n_serie (when user types and presses Enter)
@@ -121,7 +129,7 @@ export default function Labo() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* List of To-Test */}
-                <div className="bg-white dark:bg-[#16202A] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-6 flex flex-col h-[600px]">
+                <div className="bg-white dark:bg-[#16202A] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-6 flex flex-col h-[500px] lg:h-[600px]">
                     <div className="flex items-center justify-between mb-4 border-b border-gray-100 dark:border-gray-700 pb-4">
                         <h2 className="text-xl font-bold text-[#001A70] dark:text-white flex items-center gap-2">
                             <Gauge size={20} className="text-[#FE5815]" />
@@ -146,10 +154,10 @@ export default function Labo() {
                                 type="text"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder="Rechercher ou entrer un N° série..."
+                                placeholder="Rechercher / Scanner..."
                                 className="w-full bg-gray-50 dark:bg-[#0F1720] border border-gray-200 dark:border-gray-700 rounded-xl py-3 pl-10 pr-4 text-sm font-mono text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#509E2F] focus:border-transparent transition-all placeholder-gray-400"
                             />
-                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 hidden sm:block">
                                 Entrée = sélectionner
                             </span>
                         </div>
@@ -211,7 +219,7 @@ export default function Labo() {
                 </div>
 
                 {/* Test Action Form */}
-                <div className="bg-white dark:bg-[#16202A] rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 p-8 flex flex-col justify-center relative overflow-hidden">
+                <div ref={formRef} className="bg-white dark:bg-[#16202A] rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 p-8 flex flex-col justify-center relative overflow-hidden scroll-mt-24">
                     <div className="absolute top-0 left-0 w-2 h-full bg-gradient-to-b from-[#001A70] to-[#1C73E8]"></div>
 
                     <h2 className="text-2xl font-bold text-[#001A70] dark:text-white mb-8 pl-4">Saisie du Diagnostic</h2>
@@ -238,7 +246,7 @@ export default function Labo() {
                                     )}
                                 >
                                     <CheckCircle size={40} className={clsx("transition-transform group-hover:scale-110", resultatOk ? "text-[#509E2F]" : "text-gray-300")} />
-                                    <span className="font-bold text-lg">FONCTIONNEL</span>
+                                    <span className="font-bold text-xs md:text-lg">FONCTIONNEL</span>
                                 </button>
 
                                 <button
@@ -252,7 +260,7 @@ export default function Labo() {
                                     )}
                                 >
                                     <XCircle size={40} className={clsx("transition-transform group-hover:scale-110", !resultatOk ? "text-[#EF4444]" : "text-gray-300")} />
-                                    <span className="font-bold text-lg">HORS SERVICE</span>
+                                    <span className="font-bold text-xs md:text-lg">HORS SERVICE</span>
                                 </button>
                             </div>
 

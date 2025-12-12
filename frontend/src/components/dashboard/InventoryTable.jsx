@@ -104,7 +104,7 @@ export default function InventoryTable({
                         ref={scrollRef}
                         className="overflow-auto rounded-xl border border-gray-100 dark:border-gray-700 max-h-[500px] flex-1 custom-scrollbar"
                     >
-                        <table className="w-full text-left text-sm text-gray-600 dark:text-gray-300">
+                        <table className="w-full min-w-[700px] text-left text-sm text-gray-600 dark:text-gray-300">
                             <thead className="bg-gray-50 dark:bg-[#0F1720] text-gray-900 dark:text-white font-semibold sticky top-0">
                                 <tr>
                                     <th className="p-3">N° Série</th>

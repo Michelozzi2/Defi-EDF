@@ -19,7 +19,7 @@ export default function OfflineIndicator() {
     // If online, empty queue, no report, and not simulated -> Hidden (except dev toggle)
     if (isOnline && queue.length === 0 && !isSimulatedOffline && !syncReport) {
         return (
-            <div className="fixed bottom-4 right-4 z-50">
+            <div className="fixed bottom-24 md:bottom-4 right-4 z-[100]">
                 <button
                     onClick={toggleOfflineSimulation}
                     className="p-2 bg-gray-800 text-white rounded-full opacity-30 hover:opacity-100 transition-opacity text-xs"
@@ -35,7 +35,7 @@ export default function OfflineIndicator() {
 
     return (
         <div className={clsx(
-            "text-white relative z-50 transition-colors",
+            "text-white relative z-[60] transition-colors",
             hasErrors ? "bg-red-600" : (syncReport ? "bg-green-600" : "bg-edf-orange")
         )}>
             <div

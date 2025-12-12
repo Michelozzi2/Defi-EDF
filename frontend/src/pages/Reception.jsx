@@ -3,7 +3,7 @@ import Layout from '../components/Layout';
 import api from '../services/api';
 import { useOffline } from '../context/OfflineContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Scan, PackageCheck, Send, AlertCircle, Loader2, Truck, Package, ChevronRight } from 'lucide-react';
+import { Scan, PackageCheck, Send, AlertCircle, Loader2, Truck, Package, ChevronRight, Search } from 'lucide-react';
 import QRScanner from '../components/common/QRScanner';
 import clsx from 'clsx';
 
@@ -82,7 +82,7 @@ export default function Reception() {
     };
 
     return (
-        <div className="h-[calc(100vh-6rem)] max-w-7xl mx-auto p-4 flex flex-col gap-6 overflow-hidden">
+        <div className="h-[calc(100dvh-6rem)] max-w-7xl mx-auto p-4 flex flex-col gap-6 overflow-hidden">
             {/* Header - Compact */}
             <div className="shrink-0 flex items-center gap-4 mb-2">
                 <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-100 dark:bg-blue-900/30 text-[#001A70] dark:text-blue-300 rounded-xl">
@@ -110,7 +110,7 @@ export default function Reception() {
                         </div>
                         {/* Search Input for Cartons */}
                         <div className="relative">
-                            <Scan className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                             <input
                                 type="text"
                                 value={cartonSearch}
@@ -170,7 +170,7 @@ export default function Reception() {
                                     <button
                                         type="button"
                                         onClick={() => setShowScanner(true)}
-                                        className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#FE5815] transition-colors"
+                                        className="absolute left-4 top-1/2 -translate-y-1/2 text-[#FE5815]/80 hover:text-[#FE5815] transition-colors"
                                         title="Scanner un QR Code"
                                     >
                                         <Scan size={24} />
@@ -179,7 +179,7 @@ export default function Reception() {
                                         type="text"
                                         value={numCarton}
                                         onChange={(e) => setNumCarton(e.target.value)}
-                                        placeholder="Ex: CRT-2023-001"
+                                        placeholder="Scanner ou saisir N°..."
                                         className="w-full bg-gray-50 dark:bg-[#0F1720] border border-gray-200 dark:border-gray-700 rounded-xl py-4 pl-14 pr-4 text-xl font-mono text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#FE5815] focus:border-transparent transition-all placeholder-gray-300"
                                         autoFocus
                                     />

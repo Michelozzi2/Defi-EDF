@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import api from '../services/api';
 import { useOffline } from '../context/OfflineContext';
-import { ShoppingCart, Plus, Minus, Send, AlertCircle, Loader2, Package } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, Send, AlertCircle, Loader2, Package, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import clsx from 'clsx';
-
+import SearchableSelect from '../components/common/SearchableSelect';
 export default function Commande() {
     const [operateur, setOperateur] = useState('');
     const [nbCartons, setNbCartons] = useState(1);
@@ -95,23 +95,26 @@ export default function Commande() {
                 <p className="text-gray-500 dark:text-gray-400 mt-2">Commander des nouveaux cartons pour un opérateur.</p>
             </div>
 
-            <div className="bg-white dark:bg-[#16202A] rounded-3xl shadow-xl p-8 border border-gray-100 dark:border-gray-800 relative overflow-hidden">
-                <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-orange-50 dark:bg-orange-900/20 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-70 animate-blob"></div>
+            <div className="bg-white dark:bg-[#16202A] rounded-3xl shadow-xl p-8 border border-gray-100 dark:border-gray-800 relative">
+                <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
+                    <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-orange-50 dark:bg-orange-900/20 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-70 animate-blob"></div>
+                </div>
 
                 <form onSubmit={handleSubmit} className="relative z-10 space-y-8">
                     {/* Operator Input */}
                     <div className="space-y-2">
                         <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Opérateur Destinataire</label>
-                        <select
+                        <SearchableSelect
+                            options={[
+                                { value: 'Bouygues', label: 'Bouygues' },
+                                { value: 'SFR', label: 'SFR' },
+                                { value: 'Orange', label: 'Orange' }
+                            ]}
                             value={operateur}
-                            onChange={(e) => setOperateur(e.target.value)}
-                            className="w-full bg-gray-50 dark:bg-[#0F1720] border border-gray-200 dark:border-gray-700 rounded-xl py-4 px-4 text-lg text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#FE5815] transition-all appearance-none cursor-pointer"
-                        >
-                            <option value="">Sélectionner un opérateur...</option>
-                            <option value="Bouygues">Bouygues</option>
-                            <option value="SFR">SFR</option>
-                            <option value="Orange">Orange</option>
-                        </select>
+                            onChange={setOperateur}
+                            placeholder="Opérateur..."
+                            icon={User}
+                        />
                     </div>
 
                     {/* Stats & Form (Only if operator selected) */}
