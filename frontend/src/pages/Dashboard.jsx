@@ -10,6 +10,10 @@ import StatCard from '../components/dashboard/StatCard';
 import InventoryCharts from '../components/dashboard/InventoryCharts';
 import InventoryTable from '../components/dashboard/InventoryTable';
 import DetailModal from '../components/dashboard/DetailModal';
+import ActivityFeed from '../components/dashboard/ActivityFeed';
+import DashboardAlerts from '../components/dashboard/DashboardAlerts';
+import CoverageMap from '../components/dashboard/CoverageMap';
+import PerformanceCharts from '../components/dashboard/PerformanceCharts';
 
 export default function Dashboard() {
     const [stats, setStats] = useState(null);
@@ -43,13 +47,21 @@ export default function Dashboard() {
     }, [search, filterEtat, filterAffectation]);
 
     // Effect for fetching history when item is selected
+    // Effect for fetching history and details when item is selected
     useEffect(() => {
         if (selectedItem) {
+            // If the item comes from ActivityFeed, it might only have n_serie. Fetch full details.
+            if (!selectedItem.etat && !selectedItem.fetching) {
+                api.get(`/concentrateurs/${selectedItem.n_serie}/`)
+                    .then(res => setSelectedItem({ ...res.data, fetching: false }))
+                    .catch(err => console.error("Error fetching details", err));
+            }
+
             fetchHistory(selectedItem.n_serie);
         } else {
             setHistory([]);
         }
-    }, [selectedItem]);
+    }, [selectedItem?.n_serie]);
 
     const fetchStats = async () => {
         try {
@@ -138,6 +150,9 @@ export default function Dashboard() {
                 </button>
             </header>
 
+            {/* Alerts Section (Optional) */}
+            <DashboardAlerts alerts={stats?.alerts} />
+
             {/* KPI Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatCard title="Total Concentrateurs" value={total} icon={BarChart3} colorClass="bg-blue-600" delay={0.1} />
@@ -146,24 +161,40 @@ export default function Dashboard() {
                 <StatCard title="À Tester" value={aTester} icon={AlertTriangle} colorClass="bg-red-500" delay={0.4} />
             </div>
 
-            {/* Charts Section */}
-            <InventoryCharts stats={stats} />
+            {/* Main Content Grid: Charts + Activity */}
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                {/* Row 1: Key Charts & Map */}
+                <div className="xl:col-span-2 space-y-6">
+                    <InventoryCharts stats={stats} />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-[400px]">
+                        <CoverageMap stats={stats} onSelect={setSelectedItem} />
+                        <PerformanceCharts kpis={stats?.kpis} />
+                    </div>
+                </div>
+
+                {/* Activity Feed - Takes 1/3 width, aligns with left column */}
+                <div className="h-full flex flex-col">
+                    <ActivityFeed activity={stats?.recent_activity} onSelect={setSelectedItem} />
+                </div>
+            </div>
 
             {/* Isolated Search Module - Takes remaining space */}
-            <InventoryTable
-                results={results}
-                searching={searching}
-                onSelect={setSelectedItem}
-                search={search}
-                setSearch={setSearch}
-                filterEtat={filterEtat}
-                setFilterEtat={setFilterEtat}
-                filterAffectation={filterAffectation}
-                setFilterAffectation={setFilterAffectation}
-                totalCount={totalCount}
-                onLoadMore={handleLoadMore}
-                hasMore={hasMore}
-            />
+            <div className="mt-8">
+                <InventoryTable
+                    results={results}
+                    searching={searching}
+                    onSelect={setSelectedItem}
+                    search={search}
+                    setSearch={setSearch}
+                    filterEtat={filterEtat}
+                    setFilterEtat={setFilterEtat}
+                    filterAffectation={filterAffectation}
+                    setFilterAffectation={setFilterAffectation}
+                    totalCount={totalCount}
+                    onLoadMore={handleLoadMore}
+                    hasMore={hasMore}
+                />
+            </div>
 
             {/* Details Modal */}
             <AnimatePresence>

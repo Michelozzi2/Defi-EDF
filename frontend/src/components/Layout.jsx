@@ -10,6 +10,8 @@ import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
 import api from '../services/api';
 
+import OfflineIndicator from './common/OfflineIndicator';
+
 export default function Layout({ children }) {
     const location = useLocation();
     const navigate = useNavigate();
@@ -69,6 +71,7 @@ export default function Layout({ children }) {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-[#0F1720] text-gray-900 dark:text-gray-100 transition-colors">
+            <OfflineIndicator />
             {/* Main Content - Full Width with scroll */}
             <main className="min-h-screen pb-24">
                 <div className="max-w-7xl mx-auto p-6 lg:p-8">

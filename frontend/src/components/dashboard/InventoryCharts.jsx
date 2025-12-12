@@ -1,5 +1,8 @@
 import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from 'recharts';
+import {
+    BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
+    PieChart, Pie, Legend, LineChart, Line, CartesianGrid
+} from 'recharts';
 import { useTheme } from '../../context/ThemeContext';
 
 const COLORS = ['#001A70', '#509E2F', '#FE5815', '#EF4444', '#8B5CF6'];
@@ -24,65 +27,115 @@ export default function InventoryCharts({ stats }) {
     })) : [];
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white dark:bg-[#16202A] p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 h-[500px] flex flex-col">
-                <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-4">Répartition par État</h3>
-                <div className="flex-1 min-h-0 w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                        {etatData.length > 0 ? (
-                            <BarChart data={etatData}>
-                                <XAxis dataKey="name" stroke={theme === 'dark' ? '#9ca3af' : '#4b5563'} fontSize={10} tickLine={false} axisLine={false} interval={0} />
-                                <YAxis stroke={theme === 'dark' ? '#9ca3af' : '#4b5563'} fontSize={12} tickLine={false} axisLine={false} />
-                                <Tooltip
-                                    contentStyle={{ backgroundColor: theme === 'dark' ? '#1f2937' : '#fff', borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
-                                    itemStyle={{ color: theme === 'dark' ? '#fff' : '#000' }}
-                                    cursor={{ fill: 'transparent' }}
-                                />
-                                <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                                    {etatData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={entry.color || COLORS[index % COLORS.length]} />
-                                    ))}
-                                </Bar>
-                            </BarChart>
-                        ) : (
-                            <div className="h-full flex items-center justify-center text-gray-400">Aucune donnée disponible</div>
-                        )}
-                    </ResponsiveContainer>
+        <div className="flex flex-col gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="bg-white dark:bg-[#16202A] p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 h-[500px] flex flex-col">
+                    <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-4">Répartition par État</h3>
+                    <div className="flex-1 min-h-0 w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            {etatData.length > 0 ? (
+                                <BarChart data={etatData} margin={{ top: 5, right: 30, left: 20, bottom: 25 }}>
+                                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke={theme === 'dark' ? '#374151' : '#e5e7eb'} />
+                                    <XAxis
+                                        dataKey="name"
+                                        stroke={theme === 'dark' ? '#9ca3af' : '#4b5563'}
+                                        fontSize={10}
+                                        tickLine={false}
+                                        axisLine={false}
+                                        interval={0}
+                                        angle={-45}
+                                        textAnchor="end"
+                                        height={60}
+                                    />
+                                    <YAxis stroke={theme === 'dark' ? '#9ca3af' : '#4b5563'} fontSize={12} tickLine={false} axisLine={false} />
+                                    <Tooltip
+                                        contentStyle={{ backgroundColor: theme === 'dark' ? '#1f2937' : '#fff', borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                                        itemStyle={{ color: theme === 'dark' ? '#fff' : '#000' }}
+                                        cursor={{ fill: 'transparent' }}
+                                    />
+                                    <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                                        {etatData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={entry.color || COLORS[index % COLORS.length]} />
+                                        ))}
+                                    </Bar>
+                                </BarChart>
+                            ) : (
+                                <div className="h-full flex items-center justify-center text-gray-400">Aucune donnée disponible</div>
+                            )}
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+
+                <div className="bg-white dark:bg-[#16202A] p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 h-[500px] flex flex-col">
+                    <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-4">Répartition par Affectation</h3>
+                    <div className="flex-1 min-h-0 w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            {affectationData.length > 0 ? (
+                                <PieChart>
+                                    <Pie
+                                        data={affectationData}
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={60}
+                                        outerRadius={100}
+                                        fill="#8884d8"
+                                        paddingAngle={5}
+                                        dataKey="value"
+                                    >
+                                        {affectationData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip
+                                        contentStyle={{ backgroundColor: theme === 'dark' ? '#1f2937' : '#fff', borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                                        itemStyle={{ color: theme === 'dark' ? '#fff' : '#000' }}
+                                    />
+                                    <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                                </PieChart>
+                            ) : (
+                                <div className="h-full flex items-center justify-center text-gray-400">Aucune donnée disponible</div>
+                            )}
+                        </ResponsiveContainer>
+                    </div>
                 </div>
             </div>
 
-            <div className="bg-white dark:bg-[#16202A] p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 h-[500px] flex flex-col">
-                <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-4">Répartition par Affectation</h3>
-                <div className="flex-1 min-h-0 w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                        {affectationData.length > 0 ? (
-                            <PieChart>
-                                <Pie
-                                    data={affectationData}
-                                    cx="50%"
-                                    cy="50%"
-                                    innerRadius={60}
-                                    outerRadius={100}
-                                    fill="#8884d8"
-                                    paddingAngle={5}
-                                    dataKey="value"
-                                >
-                                    {affectationData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                    ))}
-                                </Pie>
-                                <Tooltip
-                                    contentStyle={{ backgroundColor: theme === 'dark' ? '#1f2937' : '#fff', borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
-                                    itemStyle={{ color: theme === 'dark' ? '#fff' : '#000' }}
-                                />
-                                <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                            </PieChart>
-                        ) : (
-                            <div className="h-full flex items-center justify-center text-gray-400">Aucune donnée disponible</div>
-                        )}
-                    </ResponsiveContainer>
-                </div>
-            </div>
+            {
+                stats?.daily_stats && (
+                    <div className="bg-white dark:bg-[#16202A] p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 h-[400px]">
+                        <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-4">Volume d'activité (30 jours)</h3>
+                        <div className="h-[320px] w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <LineChart data={stats.daily_stats}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme === 'dark' ? '#374151' : '#e5e7eb'} />
+                                    <XAxis
+                                        dataKey="date"
+                                        stroke={theme === 'dark' ? '#9ca3af' : '#4b5563'}
+                                        fontSize={12}
+                                        tickLine={false}
+                                        axisLine={false}
+                                        tickFormatter={(val) => new Date(val).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit' })}
+                                    />
+                                    <YAxis stroke={theme === 'dark' ? '#9ca3af' : '#4b5563'} fontSize={12} tickLine={false} axisLine={false} />
+                                    <Tooltip
+                                        contentStyle={{ backgroundColor: theme === 'dark' ? '#1f2937' : '#fff', borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                                        itemStyle={{ color: theme === 'dark' ? '#fff' : '#000' }}
+                                    />
+                                    <Line
+                                        name="Nombre d'actions"
+                                        type="monotone"
+                                        dataKey="count"
+                                        stroke="#FE5815"
+                                        strokeWidth={3}
+                                        dot={{ fill: '#FE5815', strokeWidth: 2 }}
+                                        activeDot={{ r: 8 }}
+                                    />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+                )
+            }
         </div>
     );
 }

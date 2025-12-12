@@ -3,7 +3,11 @@ DRF ViewSets and APIViews for all endpoints.
 """
 import logging
 
-from django.db.models import Count, Q
+from django.db.models import Count, Q, F
+from django.db.models.functions import TruncDay
+from django.utils import timezone
+from datetime import timedelta
+from django.utils.timezone import now
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -302,8 +306,122 @@ class StockStatsView(APIView):
         ).values('affectation').annotate(count=Count('id'))
         by_affectation = {item['affectation']: item['count'] for item in by_affectation_qs}
         
+        # Recent Activity (last 10)
+        recent_activity_qs = Historique.objects.select_related('concentrateur', 'user').order_by('-timestamp')[:10]
+        recent_activity_data = HistoriqueSerializer(recent_activity_qs, many=True).data
+
+        # Daily Activity (last 30 days)
+        thirty_days_ago = timezone.now() - timedelta(days=30)
+        daily_stats_qs = Historique.objects.filter(timestamp__gte=thirty_days_ago)\
+            .annotate(day=TruncDay('timestamp'))\
+            .values('day')\
+            .annotate(count=Count('id'))\
+            .order_by('day')
+        
+        daily_stats = [
+            {'date': item['day'].strftime('%Y-%m-%d'), 'count': item['count']}
+            for item in daily_stats_qs
+        ]
+
+        # Map Data: Fetch real GPS points from DB
+        map_points_qs = Concentrateur.objects.exclude(latitude__isnull=True).values(
+            'id', 'n_serie', 'affectation', 'etat', 'latitude', 'longitude',
+            'carton__num_carton', 'operateur', 'date_dernier_etat'
+        )
+        
+        map_points = [
+            {
+                'id': item['id'],
+                'n_serie': item['n_serie'],
+                'affectation': item['affectation'],
+                'etat': item['etat'],
+                'lat': item['latitude'],
+                'lng': item['longitude'],
+                'carton': item['carton__num_carton'],
+                'operateur': item['operateur'],
+                'date': item['date_dernier_etat'].strftime('%d/%m/%Y') if item['date_dernier_etat'] else None
+            }
+            for item in map_points_qs
+        ]
+
+        # Map Data: Detailed breakdown per location (keep for popups if needed, or legacy)
+        map_data_qs = Concentrateur.objects.exclude(affectation='')\
+            .values('affectation', 'etat')\
+            .annotate(count=Count('id'))
+        
+        map_data = {}
+        for item in map_data_qs:
+            loc = item['affectation']
+            etat = item['etat']
+            if loc not in map_data:
+                map_data[loc] = {'total': 0, 'details': {}}
+            
+            map_data[loc]['details'][etat] = item['count']
+            map_data[loc]['total'] += item['count']
+
+        # 3. Alerts (Low Stock in BOs)
+        alerts = []
+        THRESHOLD = 5
+        bo_names = [Affectation.BO_NORD, Affectation.BO_CENTRE, Affectation.BO_SUD]
+        for bo in bo_names:
+            count = by_affectation.get(bo, 0)
+            if count < THRESHOLD:
+                alerts.append({
+                    'type': 'warning',
+                    'title': 'Stock Critique',
+                    'message': f"Stock faible sur {bo} ({count} unités)",
+                    'location': bo
+                })
+
+        # 4. KPI: Cycle Time & Velocity
+        # Velocity: Items going out of stock (Pose or Commande BO) in last 30 days
+        thirty_days_ago = now() - timedelta(days=30)
+        out_actions = Historique.objects.filter(
+            action__in=['pose', 'commande_bo'],
+            timestamp__gte=thirty_days_ago
+        ).count()
+        velocity = out_actions / 30.0 if out_actions > 0 else 0
+        
+        # Remaining Days
+        en_stock_count = by_etat.get(Etat.EN_STOCK, 0)
+        days_remaining = int(en_stock_count / velocity) if velocity > 0 else 999
+
+        # 5. KPI: Avg Cycle Time (Reception -> Pose)
+        # We look for finshed cycles in the last 60 days to be relevant
+        sixty_days_ago = now() - timedelta(days=60)
+        recent_poses = Historique.objects.filter(action='pose', timestamp__gte=sixty_days_ago).select_related('concentrateur').only('concentrateur_id', 'timestamp')
+        
+        total_days = 0
+        count_cycles = 0
+        
+        for pose in recent_poses:
+            # Find the LAST reception before this pose
+            reception = Historique.objects.filter(
+                concentrateur_id=pose.concentrateur_id,
+                action='reception',
+                timestamp__lt=pose.timestamp
+            ).order_by('-timestamp').first()
+            
+            if reception:
+                delta = (pose.timestamp - reception.timestamp).days
+                if delta >= 0:
+                    total_days += delta
+                    count_cycles += 1
+        
+        avg_cycle_time = round(total_days / count_cycles, 1) if count_cycles > 0 else 0
+
         return Response({
             'total': total,
             'by_etat': by_etat,
-            'by_affectation': by_affectation
+            'by_affectation': by_affectation,
+            'recent_activity': recent_activity_data,
+            'daily_stats': daily_stats,
+            'alerts': alerts,
+            'map_data': map_data,
+            'map_points': map_points,
+            'kpis': {
+                'velocity': round(velocity, 2),
+                'days_remaining': days_remaining,
+                'avg_cycle_time': avg_cycle_time
+            }
         })

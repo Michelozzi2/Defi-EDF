@@ -33,5 +33,6 @@ urlpatterns = [
     path('actions/test/', TestView.as_view(), name='action-test'),
     
     # Dashboard
+    path('dashboard/stats/', StockStatsView.as_view(), name='dashboard-stats'),
     path('dashboard/stocks/', StockStatsView.as_view(), name='dashboard-stocks'),
 ]

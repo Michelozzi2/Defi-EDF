@@ -71,11 +71,12 @@ class HistoriqueSerializer(serializers.ModelSerializer):
     """Serializer for Historique (audit trail)."""
     action_display = serializers.CharField(source='get_action_display', read_only=True)
     user_name = serializers.CharField(source='user.username', read_only=True, allow_null=True)
+    concentrateur = serializers.CharField(source='concentrateur.n_serie', read_only=True)
     
     class Meta:
         model = Historique
         fields = [
-            'id', 'action', 'action_display', 'user_name',
+            'id', 'action', 'action_display', 'user_name', 'concentrateur',
             'ancien_etat', 'nouvel_etat',
             'ancienne_affectation', 'nouvelle_affectation',
             'poste', 'commentaire', 'timestamp'
