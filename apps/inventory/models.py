@@ -138,6 +138,8 @@ class Concentrateur(models.Model):
         default='',
         verbose_name="Affectation"
     )
+    latitude = models.FloatField(null=True, blank=True, verbose_name="Latitude")
+    longitude = models.FloatField(null=True, blank=True, verbose_name="Longitude")
     etat = models.CharField(
         max_length=20,
         choices=Etat.choices,
