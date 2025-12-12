@@ -11,6 +11,7 @@ export default function Login() {
     const [error, setError] = useState('');
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [rememberMe, setRememberMe] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
     const navigate = useNavigate();
@@ -67,7 +68,7 @@ export default function Login() {
         }
 
         try {
-            await api.post('/auth/login/', { username, password });
+            await api.post('/auth/login/', { username, password, remember_me: rememberMe });
             // Fetch user to hydrate context before navigating
             await fetchUser();
             navigate('/workspaces');
@@ -155,7 +156,7 @@ export default function Login() {
 
                         <form onSubmit={handleLogin} className="space-y-6">
                             <div className="space-y-2">
-                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">NNI / Identifiant</label>
+                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Identifiant</label>
                                 <div className="relative group">
                                     <div className="absolute left-0 top-0 bottom-0 w-12 flex items-center justify-center text-gray-500 group-focus-within:text-[#FE5815] transition-colors">
                                         <User size={20} />
@@ -164,7 +165,7 @@ export default function Login() {
                                         type="text"
                                         value={username}
                                         onChange={(e) => setUsername(e.target.value)}
-                                        placeholder="Numéro d'identification"
+                                        placeholder="Identifiant"
                                         className="w-full bg-[#16202A] border border-gray-800 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-[#FE5815] focus:bg-[#1A2634] transition-all font-medium"
                                     />
                                 </div>
@@ -193,12 +194,16 @@ export default function Login() {
                                 </div>
                             </div>
 
-                            <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center justify-end text-sm">
                                 <label className="flex items-center gap-2 text-gray-400 cursor-pointer hover:text-white transition-colors">
-                                    <input type="checkbox" className="w-4 h-4 rounded border-gray-700 bg-[#16202A] text-[#FE5815] focus:ring-[#FE5815]" />
+                                    <input
+                                        type="checkbox"
+                                        checked={rememberMe}
+                                        onChange={(e) => setRememberMe(e.target.checked)}
+                                        className="w-4 h-4 rounded border-gray-700 bg-[#16202A] text-[#FE5815] focus:ring-[#FE5815]"
+                                    />
                                     Se souvenir de moi
                                 </label>
-                                <a href="#" className="text-[#FE5815] hover:text-[#ff7b42] font-medium">Mot de passe oublié ?</a>
                             </div>
 
                             {error && (

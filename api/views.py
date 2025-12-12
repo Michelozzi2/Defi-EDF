@@ -52,6 +52,12 @@ class LoginAPIView(APIView):
         
         if user is not None:
             login(request, user)
+            remember_me = request.data.get('remember_me', False)
+            if not remember_me:
+                request.session.set_expiry(0)
+            else:
+                request.session.set_expiry(None)
+                
             serializer = UserSerializer(user)
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
