@@ -4,6 +4,7 @@ import api from '../services/api';
 import { useOffline } from '../context/OfflineContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Scan, PackageCheck, Send, AlertCircle, Loader2, Truck, Package, ChevronRight } from 'lucide-react';
+import QRScanner from '../components/common/QRScanner';
 import clsx from 'clsx';
 
 export default function Reception() {
@@ -11,6 +12,7 @@ export default function Reception() {
     const [loading, setLoading] = useState(false);
     const [status, setStatus] = useState(null); // 'success' | 'error' | null
     const [message, setMessage] = useState('');
+    const [showScanner, setShowScanner] = useState(false);
 
     // Incoming Cartons List
     const [incomingCartons, setIncomingCartons] = useState([]);
@@ -165,17 +167,36 @@ export default function Reception() {
                             <div>
                                 <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1 uppercase tracking-wide">Numéro de Carton</label>
                                 <div className="relative group mt-2">
-                                    <Scan className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#FE5815] transition-colors" size={24} />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowScanner(true)}
+                                        className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#FE5815] transition-colors"
+                                        title="Scanner un QR Code"
+                                    >
+                                        <Scan size={24} />
+                                    </button>
                                     <input
                                         type="text"
                                         value={numCarton}
                                         onChange={(e) => setNumCarton(e.target.value)}
                                         placeholder="Ex: CRT-2023-001"
-                                        className="w-full bg-gray-50 dark:bg-[#0F1720] border border-gray-200 dark:border-gray-700 rounded-xl py-4 pl-12 pr-4 text-xl font-mono text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#FE5815] focus:border-transparent transition-all placeholder-gray-300"
+                                        className="w-full bg-gray-50 dark:bg-[#0F1720] border border-gray-200 dark:border-gray-700 rounded-xl py-4 pl-14 pr-4 text-xl font-mono text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#FE5815] focus:border-transparent transition-all placeholder-gray-300"
                                         autoFocus
                                     />
                                 </div>
                             </div>
+
+                            <AnimatePresence>
+                                {showScanner && (
+                                    <QRScanner
+                                        onScanSuccess={(decodedText) => {
+                                            setNumCarton(decodedText);
+                                            setShowScanner(false);
+                                        }}
+                                        onClose={() => setShowScanner(false)}
+                                    />
+                                )}
+                            </AnimatePresence>
 
                             <button
                                 type="submit"

@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import api from '../services/api';
 import { useOffline } from '../context/OfflineContext';
-import { Microscope, CheckCircle, XCircle, Search, RefreshCw, ClipboardCheck, ArrowRight, Gauge } from 'lucide-react';
+import { Microscope, CheckCircle, XCircle, Search, RefreshCw, ClipboardCheck, ArrowRight, Gauge, Scan } from 'lucide-react';
 import clsx from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
+import QRScanner from '../components/common/QRScanner';
 
 export default function Labo() {
     // Data State
@@ -17,6 +18,7 @@ export default function Labo() {
 
     // Search State
     const [searchQuery, setSearchQuery] = useState('');
+    const [showScanner, setShowScanner] = useState(false);
 
     // UI State
     const [submitting, setSubmitting] = useState(false);
@@ -133,7 +135,13 @@ export default function Labo() {
                     {/* Search Input for Concentrators */}
                     <form onSubmit={handleSearchSubmit} className="mb-4">
                         <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                            <button
+                                type="button"
+                                onClick={() => setShowScanner(true)}
+                                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#FE5815] transition-colors"
+                            >
+                                <Scan size={18} />
+                            </button>
                             <input
                                 type="text"
                                 value={searchQuery}
@@ -146,6 +154,19 @@ export default function Labo() {
                             </span>
                         </div>
                     </form>
+
+                    <AnimatePresence>
+                        {showScanner && (
+                            <QRScanner
+                                onScanSuccess={(decodedText) => {
+                                    setSearchQuery(decodedText);
+                                    setSelectedNSerie(decodedText);
+                                    setShowScanner(false);
+                                }}
+                                onClose={() => setShowScanner(false)}
+                            />
+                        )}
+                    </AnimatePresence>
 
                     <div className="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
                         {loadingTests ? (
