@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import api from '../services/api';
-import { Wrench, ArrowDownCircle, ArrowUpCircle, Send, AlertCircle, Loader2, MapPin, CircuitBoard, Plus, RefreshCw, ChevronDown, Check } from 'lucide-react';
+import { Wrench, ArrowDownCircle, ArrowUpCircle, Send, AlertCircle, Loader2, MapPin, CircuitBoard, Plus, RefreshCw, ChevronDown, Check, Scan } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import clsx from 'clsx';
 import { useTheme } from '../context/ThemeContext';
 import { useOffline } from '../context/OfflineContext';
+import QRScanner from '../components/common/QRScanner';
 
 // Simple Searchable Select Component
 const SearchableSelect = ({ options, value, onChange, placeholder, icon: Icon, loading }) => {
@@ -112,6 +113,7 @@ export default function Operations() {
 
     // Search State for Stock
     const [stockSearch, setStockSearch] = useState('');
+    const [showScanner, setShowScanner] = useState(false);
 
     // Filtered stock based on search
     const filteredStock = stock.filter(item =>
@@ -361,7 +363,13 @@ export default function Operations() {
                                 <div className="space-y-2">
                                     <label className="text-sm font-bold text-[#001A70] dark:text-blue-200 ml-1 uppercase tracking-wide">Numéro de Série</label>
                                     <div className="relative group">
-                                        <CircuitBoard className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#001A70] dark:group-focus-within:text-blue-400 transition-colors" />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowScanner(true)}
+                                            className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#001A70] dark:hover:text-blue-400 transition-colors"
+                                        >
+                                            <Scan size={20} />
+                                        </button>
                                         <input
                                             type="text"
                                             value={nSerie}
@@ -370,6 +378,17 @@ export default function Operations() {
                                             className="w-full bg-gray-50 dark:bg-[#0F1720] border border-gray-200 dark:border-gray-700 rounded-xl py-4 pl-12 pr-4 text-lg font-mono text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#001A70] dark:focus:ring-blue-500 transition-all shadow-sm"
                                         />
                                     </div>
+                                    <AnimatePresence>
+                                        {showScanner && (
+                                            <QRScanner
+                                                onScanSuccess={(decodedText) => {
+                                                    setNSerie(decodedText);
+                                                    setShowScanner(false);
+                                                }}
+                                                onClose={() => setShowScanner(false)}
+                                            />
+                                        )}
+                                    </AnimatePresence>
                                 </div>
                             )}
 
