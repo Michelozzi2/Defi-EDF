@@ -41,7 +41,7 @@ export default function CoverageMap({ stats, onSelect }) {
                 </button>
             </div>
 
-            <div className="flex-1 rounded-xl overflow-hidden border border-gray-100 dark:border-gray-800 relative z-0">
+            <div className="flex-1 rounded-xl overflow-hidden border border-gray-100 dark:border-gray-800 relative z-0 min-h-[300px]">
                 <MapContainer center={DEFAULT_CENTER} zoom={8} style={{ height: '100%', width: '100%' }}>
                     <TileLayer
                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

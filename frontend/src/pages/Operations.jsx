@@ -7,95 +7,8 @@ import { useTheme } from '../context/ThemeContext';
 import { useOffline } from '../context/OfflineContext';
 import QRScanner from '../components/common/QRScanner';
 
-// Simple Searchable Select Component
-const SearchableSelect = ({ options, value, onChange, placeholder, icon: Icon, loading }) => {
-    const [isOpen, setIsOpen] = useState(false);
-    const [search, setSearch] = useState('');
-    const containerRef = useRef(null);
-
-    // Filter options based on search
-    const filteredOptions = options.filter(opt =>
-        opt.label.toLowerCase().includes(search.toLowerCase()) ||
-        opt.value.toString().toLowerCase().includes(search.toLowerCase())
-    );
-
-    // Close on click outside
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (containerRef.current && !containerRef.current.contains(event.target)) {
-                setIsOpen(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
-    const selectedOption = options.find(opt => opt.value === value);
-
-    return (
-        <div className="relative group" ref={containerRef}>
-            {Icon && <Icon className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#001A70] dark:group-focus-within:text-blue-400 transition-colors z-10" />}
-
-            <div
-                onClick={() => setIsOpen(!isOpen)}
-                className="w-full bg-gray-50 dark:bg-[#0F1720] border border-gray-200 dark:border-gray-700 rounded-xl py-4 pl-12 pr-10 text-lg font-mono text-gray-900 dark:text-white focus:outline-none cursor-pointer flex items-center justify-between shadow-sm hover:border-[#001A70] dark:hover:border-blue-500 transition-colors"
-            >
-                <span className={!selectedOption ? "text-gray-400" : ""}> {selectedOption ? selectedOption.label : placeholder} </span>
-                <ChevronDown size={20} className={clsx("text-gray-400 transition-transform", isOpen && "rotate-180")} />
-            </div>
-
-            <AnimatePresence>
-                {isOpen && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 10 }}
-                        className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-[#16202A] border border-gray-100 dark:border-gray-700 rounded-xl shadow-xl z-[60] max-h-60 overflow-hidden flex flex-col"
-                    >
-                        <div className="p-2 border-b border-gray-100 dark:border-gray-700">
-                            <input
-                                type="text"
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                placeholder="Filtrer..."
-                                className="w-full p-2 bg-gray-50 dark:bg-[#0F202A] rounded-lg text-sm outline-none border border-transparent focus:border-[#001A70] text-gray-900 dark:text-white"
-                                autoFocus
-                                onClick={e => e.stopPropagation()}
-                            />
-                        </div>
-                        <div className="overflow-y-auto flex-1 p-1 custom-scrollbar">
-                            {loading ? (
-                                <div className="p-4 text-center text-gray-400 text-sm">Chargement...</div>
-                            ) : filteredOptions.length > 0 ? (
-                                filteredOptions.map((opt) => (
-                                    <div
-                                        key={opt.value}
-                                        onClick={() => {
-                                            onChange(opt.value);
-                                            setIsOpen(false);
-                                            setSearch('');
-                                        }}
-                                        className={clsx(
-                                            "p-3 rounded-lg cursor-pointer flex items-center justify-between text-sm transition-colors",
-                                            value === opt.value
-                                                ? "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
-                                                : "hover:bg-gray-50 dark:hover:bg-[#1E293B] text-gray-700 dark:text-gray-300"
-                                        )}
-                                    >
-                                        <span className="font-mono">{opt.label}</span>
-                                        {value === opt.value && <Check size={16} />}
-                                    </div>
-                                ))
-                            ) : (
-                                <div className="p-4 text-center text-gray-400 text-sm">Aucun résultat</div>
-                            )}
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </div>
-    );
-};
+// Local SearchableSelect removed, imported from common
+import SearchableSelect from '../components/common/SearchableSelect';
 
 export default function Operations() {
     const [activeTab, setActiveTab] = useState('pose');
@@ -275,7 +188,7 @@ export default function Operations() {
             <div className={clsx("grid grid-cols-1 gap-8", activeTab === 'pose' ? "lg:grid-cols-3" : "lg:grid-cols-1 max-w-2xl mx-auto")}>
                 {/* Stock List Panel - Only in Pose Mode */}
                 {activeTab === 'pose' && (
-                    <div className="lg:col-span-1 bg-white dark:bg-[#16202A] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-6 flex flex-col h-[600px]">
+                    <div className="lg:col-span-1 bg-white dark:bg-[#16202A] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-6 flex flex-col h-[450px] lg:h-[600px] order-2 lg:order-1">
                         <div className="flex items-center justify-between mb-4 border-b border-gray-100 dark:border-gray-700 pb-3">
                             <h3 className="font-bold text-[#001A70] dark:text-white flex items-center gap-2">
                                 <CircuitBoard size={20} className="text-[#509E2F]" />
@@ -324,7 +237,7 @@ export default function Operations() {
                 )}
 
                 {/* Operation Form */}
-                <div className="lg:col-span-2 bg-white dark:bg-[#16202A] rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 relative overflow-visible flex flex-col">
+                <div className="lg:col-span-2 bg-white dark:bg-[#16202A] rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 relative overflow-visible flex flex-col order-1 lg:order-2">
                     {/* Tabs (Pose/Depose) */}
                     <div className="flex border-b border-gray-100 dark:border-gray-800">
                         {/* ... Tabs (same as before) ... */}
@@ -366,7 +279,7 @@ export default function Operations() {
                                         <button
                                             type="button"
                                             onClick={() => setShowScanner(true)}
-                                            className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#001A70] dark:hover:text-blue-400 transition-colors"
+                                            className="absolute left-4 top-1/2 -translate-y-1/2 text-[#001A70]/70 hover:text-[#001A70] dark:text-blue-400/70 dark:hover:text-blue-400 transition-colors"
                                         >
                                             <Scan size={20} />
                                         </button>
@@ -374,7 +287,7 @@ export default function Operations() {
                                             type="text"
                                             value={nSerie}
                                             onChange={(e) => setNSerie(e.target.value)}
-                                            placeholder="Ex: C-1000"
+                                            placeholder="Scanner ou saisir N°..."
                                             className="w-full bg-gray-50 dark:bg-[#0F1720] border border-gray-200 dark:border-gray-700 rounded-xl py-4 pl-12 pr-4 text-lg font-mono text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#001A70] dark:focus:ring-blue-500 transition-all shadow-sm"
                                         />
                                     </div>

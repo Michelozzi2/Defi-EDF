@@ -21,7 +21,7 @@ export default function PerformanceCharts({ kpis }) {
     const predictionData = generatePredictionData();
 
     return (
-        <div className="space-y-6 h-full">
+        <div className="flex flex-col gap-6 md:h-full">
             {/* Cycle Time Card */}
             <div className="bg-white dark:bg-[#16202A] p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
                 <div className="flex items-start justify-between mb-4">
@@ -49,7 +49,7 @@ export default function PerformanceCharts({ kpis }) {
             </div>
 
             {/* Stock Prediction Card */}
-            <div className="bg-white dark:bg-[#16202A] p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 flex-1 flex flex-col">
+            <div className="bg-white dark:bg-[#16202A] p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 md:flex-1 flex flex-col">
                 <div className="flex items-start justify-between mb-4">
                     <div>
                         <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider">Prédiction rupture</h3>
@@ -67,7 +67,7 @@ export default function PerformanceCharts({ kpis }) {
                     <p className="text-sm text-gray-500">restants avant rupture magasin</p>
                 </div>
 
-                <div className="flex-1 min-h-[120px]">
+                <div className="h-[100px] md:h-[150px] w-full min-h-0">
                     <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={predictionData}>
                             <defs>
