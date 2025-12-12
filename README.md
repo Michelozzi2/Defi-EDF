@@ -115,26 +115,151 @@ Defi-EDF/
 ├── frontend/                # Application React (Vite)
 │   ├── src/
 │   │   ├── components/      # Composants réutilisables
-│   │   │   ├── Layout.jsx   # Layout principal avec sidebar
-│   │   │   └── ProtectedRoute.jsx
-│   │   ├── context/         # Contextes React (Auth, Theme)
+│   │   │   ├── Layout.jsx       # Layout avec sidebar responsive
+│   │   │   ├── ProtectedRoute.jsx # HOC de protection des routes
+│   │   │   ├── Portal.jsx       # Portail React pour modales
+│   │   │   ├── common/          # Composants utilitaires
+│   │   │   │   ├── OfflineIndicator.jsx  # Indicateur mode hors-ligne
+│   │   │   │   └── QRScanner.jsx         # Scanner QR Code
+│   │   │   └── dashboard/       # Composants Dashboard
+│   │   │       ├── StatCard.jsx          # Carte statistique
+│   │   │       ├── InventoryCharts.jsx   # Graphiques stock
+│   │   │       ├── InventoryTable.jsx    # Tableau inventaire
+│   │   │       ├── PerformanceCharts.jsx # Graphiques performance
+│   │   │       ├── ActivityFeed.jsx      # Flux d'activité
+│   │   │       ├── CoverageMap.jsx       # Carte de couverture
+│   │   │       ├── DashboardAlerts.jsx   # Alertes dashboard
+│   │   │       └── DetailModal.jsx       # Modale détails
+│   │   │
+│   │   ├── context/         # Contextes React (gestion d'état global)
+│   │   │   ├── UserContext.jsx    # Auth, permissions, profil utilisateur
+│   │   │   ├── ThemeContext.jsx   # Thème clair/sombre
+│   │   │   ├── ToastContext.jsx   # Notifications toast
+│   │   │   └── OfflineContext.jsx # Mode hors-ligne, sync queue
+│   │   │
 │   │   ├── pages/           # Pages de l'application
-│   │   │   ├── Login.jsx
-│   │   │   ├── Dashboard.jsx
-│   │   │   ├── Reception.jsx
-│   │   │   ├── Commande.jsx
-│   │   │   ├── Operations.jsx
-│   │   │   ├── Labo.jsx
-│   │   │   └── WorkspaceSelector.jsx
-│   │   ├── services/        # Client API (axios)
-│   │   └── App.jsx          # Routeur principal
+│   │   │   ├── Login.jsx            # Authentification
+│   │   │   ├── Dashboard.jsx        # Tableau de bord principal
+│   │   │   ├── Reception.jsx        # Réception cartons (Magasin)
+│   │   │   ├── Commande.jsx         # Commande cartons (BO)
+│   │   │   ├── Operations.jsx       # Pose/Dépose (Terrain)
+│   │   │   ├── Labo.jsx             # Tests concentrateurs (Labo)
+│   │   │   ├── MapPage.jsx          # Carte géographique
+│   │   │   └── WorkspaceSelector.jsx # Sélection espace de travail
+│   │   │
+│   │   ├── services/        # Client API
+│   │   │   └── api.js       # Instance Axios configurée
+│   │   │
+│   │   ├── styles/          # Styles CSS
+│   │   └── App.jsx          # Routeur principal (React Router)
+│   │
 │   ├── package.json
 │   └── vite.config.js
 │
+├── docker-compose.yml       # Orchestration Docker
+├── Dockerfile.backend       # Image Docker Backend
+├── Dockerfile.frontend      # Image Docker Frontend
 ├── manage.py                # Script de gestion Django
 ├── requirements.txt         # Dépendances Python
 └── README.md
 ```
+
+## 🏗️ Architecture
+
+```mermaid
+flowchart TB
+    subgraph Client["🖥️ Client (Navigateur)"]
+        Browser["Browser Web"]
+    end
+
+    subgraph Frontend["📱 Frontend - React + Vite (Port 5173)"]
+        App["App.jsx - Router"]
+        
+        subgraph Pages["Pages"]
+            Login["Login"]
+            Dashboard["Dashboard"]
+            Reception["Réception"]
+            Commande["Commande"]
+            Operations["Opérations"]
+            Labo["Laboratoire"]
+            MapPage["MapPage"]
+            WorkspaceSelector["WorkspaceSelector"]
+        end
+        
+        subgraph Components["Composants"]
+            Layout["Layout"]
+            ProtectedRoute["ProtectedRoute"]
+            subgraph DashboardComponents["Dashboard"]
+                StatCard["StatCard"]
+                Charts["Charts"]
+                Tables["Tables"]
+            end
+            subgraph Common["Common"]
+                OfflineIndicator["OfflineIndicator"]
+                QRScanner["QRScanner"]
+            end
+        end
+        
+        subgraph Context["Contextes React"]
+            UserContext["UserContext<br/>Auth & Permissions"]
+            ThemeContext["ThemeContext<br/>Dark/Light Mode"]
+            ToastContext["ToastContext<br/>Notifications"]
+            OfflineContext["OfflineContext<br/>Sync Queue & PWA"]
+        end
+        
+        subgraph ServicesF["Services"]
+            ApiService["api.js (Axios)"]
+        end
+    end
+
+    subgraph Backend["⚙️ Backend - Django 5 + DRF (Port 8000)"]
+        subgraph API["API REST (/api/v1/)"]
+            Views["views.py"]
+            Serializers["serializers.py"]
+            Permissions["permissions.py"]
+        end
+        
+        subgraph DjangoApps["Applications Django"]
+            Core["core/<br/>User Model"]
+            Inventory["inventory/<br/>Concentrateur, Carton, Poste"]
+            Tracking["tracking/<br/>ActionLog"]
+            DashboardApp["dashboard/<br/>Stats"]
+        end
+        
+        subgraph BusinessServices["Services Métier"]
+            ConcentrateurService["ConcentrateurService<br/>State Machine"]
+        end
+    end
+
+    subgraph Database["🗄️ Database"]
+        SQLite["SQLite"]
+    end
+
+    subgraph Docker["🐳 Docker"]
+        Compose["docker-compose.yml"]
+    end
+
+    Browser --> App
+    App --> Pages
+    Pages --> Components
+    Pages --> Context
+    Context --> ApiService
+    ApiService -->|"HTTP/REST"| API
+    API --> DjangoApps
+    DjangoApps --> BusinessServices
+    DjangoApps --> SQLite
+    Compose -.->|"orchestre"| Frontend
+    Compose -.->|"orchestre"| Backend
+```
+
+### Contextes React (État Global)
+
+| Contexte | Responsabilité |
+|----------|----------------|
+| **UserContext** | Authentification, profil utilisateur, vérification des permissions (`hasPermission`) |
+| **ThemeContext** | Gestion du thème clair/sombre avec persistance LocalStorage |
+| **ToastContext** | Système de notifications toast (success, error, info, warning) |
+| **OfflineContext** | Mode hors-ligne PWA, file d'attente de synchronisation, détection réseau |
 
 ## 🔗 Endpoints API
 
